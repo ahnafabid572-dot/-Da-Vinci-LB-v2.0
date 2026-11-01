@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Marco Da Vinci & LB Trade Finder</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            slate: {
+              850: '#151e2e',
+              900: '#0f172a',
+              950: '#020617',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    .check-card:has(input:checked) {
+      border-color: #10b981;
+      background-color: rgba(16, 185, 129, 0.08);
+    }
+    .veto-card:has(input:checked) {
+      border-color: #ef4444;
+      background-color: rgba(239, 68, 68, 0.12);
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen pb-16">
+
+  <!-- Top Sticky Header with Live Dhaka Clock & Session Status -->
+  <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur border-b border-slate-800 px-4 py-3 shadow-lg">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/40 flex items-center justify-center text-emerald-400 font-extrabold text-lg">
+          M
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-2">
+            Marco Trade Finder <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Da Vinci + LB v2.0</span>
+          </h1>
+          <p class="text-xs text-slate-400">100% Authentic 17-Video Execution Terminal</p>
+        </div>
+      </div>
+
+      <!-- Live Clocks & Session Pill -->
+      <div class="flex flex-wrap items-center gap-2 sm:gap-4">
+        <div class="bg-slate-850 border border-slate-800 rounded-lg px-3 py-1.5 text-right">
+          <div class="text-[10px] uppercase tracking-wider text-slate-400">Dhaka (GMT+6)</div>
+          <div id="dhaka-clock" class="mono text-sm font-bold text-emerald-400">--:--:--</div>
+        </div>
+        <div class="bg-slate-850 border border-slate-800 rounded-lg px-3 py-1.5 text-right">
+          <div class="text-[10px] uppercase tracking-wider text-slate-400">Marco (Toronto EST)</div>
+          <div id="est-clock" class="mono text-sm font-bold text-sky-400">--:--:--</div>
+        </div>
+        <div id="session-badge" class="px-3 py-2 rounded-lg text-xs font-bold border border-slate-700 bg-slate-800 text-slate-300">
+          Checking Session...
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 pt-6 space-y-6">
+
+    <!-- Pair Selector Bar -->
+    <section class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <div>
+          <h2 class="text-sm font-bold uppercase tracking-wider text-slate-300">1. Select Pair & Bias</h2>
+          <p class="text-xs text-slate-400">OANDA Chart Reading $\rightarrow$ MT5 Manual Execution (Spread Buffer Auto-Adjusts)</p>
+        </div>
+        <button onclick="resetAll()" class="text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">
+          Reset Current Scan
+        </button>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2.5" id="pair-buttons">
+        <!-- Populated by JS -->
+      </div>
+
+      <!-- Direction & Entry Model Selector -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 pt-4 border-t border-slate-800">
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Daily + 4H Direction (Hard Filter)</label>
+          <div class="grid grid-cols-2 gap-2">
+            <button id="dir-buy" onclick="setDirection('BUY')" class="py-2.5 px-4 rounded-xl font-bold text-sm border transition flex items-center justify-center gap-2 bg-emerald-500/20 border-emerald-500 text-emerald-300">
+              <span>▲ BULLISH (BUY ONLY)</span>
+            </button>
+            <button id="dir-sell" onclick="setDirection('SELL')" class="py-2.5 px-4 rounded-xl font-bold text-sm border transition flex items-center justify-center gap-2 bg-slate-850 border-slate-800 text-slate-400">
+              <span>▼ BEARISH (SELL ONLY)</span>
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Marco Entry Model</label>
+          <select id="entry-model" onchange="evaluateSetup()" class="w-full bg-slate-850 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white font-medium focus:outline-none focus:border-emerald-500">
+            <option value="Model 1: Direct Sweep Limit (Da Vinci Standard)">Model 1: Direct Sweep Limit (On Induced Line + SL Behind LB)</option>
+            <option value="Model 2: 5m/1m LTF Confirmation (Mini Da Vinci)">Model 2: 5m/1m LTF Confirmation (Used when HTF RR &lt; 3.0)</option>
+            <option value="Model 3: 30m Candle Sweep (9:30 NY Open / PDH-PDL)">Model 3: 30m Candle Sweep (9:30 AM NY Open / Daily Level)</option>
+            <option value="Model 4: To-The-Minute 5m Close (:00 Hour Flip)">Model 4: To-The-Minute 5m Engulfing Close (:55/:00 Flip)</option>
+            <option value="Bonus: Stacking 2nd Entry (New Intermediate LB)">Bonus: Stacking Entry (Pullback into New LB + Same Final TP)</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main 3-Column Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- Left Column: Step-by-Step Da Vinci Checklist (7 cols) -->
+      <div class="lg:col-span-7 space-y-5">
+
+        <!-- Hard Stay-Out / Veto Check (Red Flags) -->
+        <div class="bg-slate-900 border border-rose-500/30 rounded-2xl p-4">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-sm font-bold uppercase tracking-wider text-rose-400 flex items-center gap-2">
+              <span>🛑 Step 2: Hard Veto & "No-More" Filter (Tick if TRUE)</span>
+            </h3>
+            <span class="text-[11px] text-slate-400">Must all be UNCHECKED to trade</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <label class="veto-card flex items-start gap-2.5 p-2.5 rounded-xl border border-slate-800 bg-slate-850/60 cursor-pointer transition">
+              <input type="checkbox" class="veto-check mt-1 accent-rose-500" onchange="evaluateSetup()" />
+              <div class="text-xs">
+                <div class="font-semibold text-slate-200">No-More Rule Triggered</div>
+                <div class="text-slate-400">Opposite side already induced &amp; swept (e.g., selling after buyers trapped).</div>
+              </div>
+            </label>
+            <label class="veto-card flex items-start gap-2.5 p-2.5 rounded-xl border border-slate-800 bg-slate-850/60 cursor-pointer transition">
+              <input type="checkbox" class="veto-check mt-1 accent-rose-500" onchange="evaluateSetup()" />
+              <div class="text-xs">
+                <div class="font-semibold text-slate-200">In "No Man's Land" (Mid-Range)</div>
+                <div class="text-slate-400">Price is chopping in the middle between upside &amp; downside pools.</div>
+              </div>
+            </label>
+            <label class="veto-card flex items-start gap-2.5 p-2.5 rounded-xl border border-slate-800 bg-slate-850/60 cursor-pointer transition">
+              <input type="checkbox" class="veto-check mt-1 accent-rose-500" onchange="evaluateSetup()" />
+              <div class="text-xs">
+                <div class="font-semibold text-slate-200">Opposite Target Already Swept</div>
+                <div class="text-slate-400">Price ran the TP pool before tapping your entry zone.</div>
+              </div>
+            </label>
+            <label class="veto-card flex items-start gap-2.5 p-2.5 rounded-xl border border-slate-800 bg-slate-850/60 cursor-pointer transition">
+              <input type="checkbox" class="veto-check mt-1 accent-rose-500" onchange="evaluateSetup()" />
+              <div class="text-xs">
+                <div class="font-semibold text-slate-200">4H Un-Swept Wick / Red News / Holiday</div>
+                <div class="text-slate-400">4H respected low/high without sweep, Bank Holiday, or CPI/NFP in 30m.</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Mandatory 6-Point Da Vinci & LB Checklist -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-sm font-bold uppercase tracking-wider text-emerald-400">
+              ✅ Step 3: Mandatory Da Vinci &amp; LB Conditions
+            </h3>
+            <span id="checklist-counter" class="mono text-xs font-bold px-2.5 py-1 rounded-full bg-slate-800 text-slate-300">0 / 6 YES</span>
+          </div>
+
+          <div class="space-y-2.5">
+            <label class="check-card flex items-start gap-3 p-3 rounded-xl border border-slate-800 bg-slate-850/60 cursor-pointer transition">
+              <input type="checkbox" class="rule-check mt-1 w-4 h-4 accent-emerald-500" onchange="evaluateSetup()" />
+              <div class="text-xs sm:text-sm">
+                <div class="font-semibold text-white">1. Daily / 4H Framing &amp; Untaken Target ($$$)</div>
+                <div class="text-xs text-slate-400 mt-0.5">PDH/PDL and Breadcrumb levels are marked. Clear untaken liquidity pool exists in my trade direction (not an Inside Day chop).</div>
+              </div>
+            </label>
+
+            <label class="check-card flex items-start gap-3 p-3 rounded-xl border border-slate-800 bg-slate-850/60 cursor-pointer transition">
+              <input type="checkbox" class="rule-check mt-1 w-4 h-4 accent-emerald-500" onchange="evaluateSetup()" />
+              <div class="text-xs sm:text-sm">
+                <div class="font-semibold text-white">2. Engineered Liquidity (EL) Confirmed</div>
+                <div class="text-xs text-slate-400 mt-0.5">Price previously respected the target side (forming relative/equal highs or lows) before pulling back, proving stops are built up there.</div>
+              </div>
+            </label>
+
+            <label class="check-card flex items-start gap-3 p-3 rounded-xl border border-slate-800 bg-slate-850/60 cursor-pointer transition">
+              <input type="checkbox" class="rule-check mt-1 w-4 h-4 accent-emerald-500" onchange="evaluateSetup()" />
+              <div class="text-xs sm:text-sm">
+                <div class="font-semibold text-white">3. Fresh Left-Side Liquidity Block (LB)</div>
+                <div class="text-xs text-slate-400 mt-0.5">The zone on the left swept an older swing high/low ("holds no liquidity anymore") and is 100% fresh &amp; unmitigated.</div>
+              </div>
+            </label>
+
+            <label class="check-card flex items-start gap-3 p-3 rounded-xl border border-slate-800 bg-slate-850/60 cursor-pointer transition">
+              <input type="checkbox" class="rule-check mt-1 w-4 h-4 accent-emerald-500" onchange="evaluateSetup()" />
+              <div class="text-xs sm:text-sm">
+                <div class="font-semibold text-white">4. Early Traders Induced + Nearer-Trap Checked</div>
+                <div class="text-xs text-slate-400 mt-0.5">A minor BOS induced early buyers/sellers right in front of/inside the LB, and no closer internal trap has already invalidated it.</div>
+              </div>
+            </label>
+
+            <label class="check-card flex items-start gap-3 p-3 rounded-xl border border-slate-800 bg-slate-850/60 cursor-pointer transition">
+              <input type="checkbox" class="rule-check mt-1 w-4 h-4 accent-emerald-500" onchange="evaluateSetup()" />
+              <div class="text-xs sm:text-sm">
+                <div class="font-semibold text-white">5. Exact Entry on Induced Liquidity Sweep (Not Blind Block Edge)</div>
+                <div class="text-xs text-slate-400 mt-0.5">Entry is set at the exact line where induced traders get stabbed (or via 5m/1m confirmation LB / 30m NY Open candle sweep).</div>
+              </div>
+            </label>
+
+            <label class="check-card flex items-start gap-3 p-3 rounded-xl border border-slate-800 bg-slate-850/60 cursor-pointer transition">
+              <input type="checkbox" class="rule-check mt-1 w-4 h-4 accent-emerald-500" onchange="evaluateSetup()" />
+              <div class="text-xs sm:text-sm">
+                <div class="font-semibold text-white">6. Predetermined BE Trigger &amp; 0%–25% Partial Plan</div>
+                <div class="text-xs text-slate-400 mt-0.5">First internal structure break is marked for Breakeven (max 20–25% partial), leaving 75–80% volume for the final HTF pool.</div>
+              </div>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Price Calculator + Verdict + Ticket Generator (5 cols) -->
+      <div class="lg:col-span-5 space-y-5">
+
+        <!-- Exact Price & Auto-Spread RR Calculator -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-sm font-bold uppercase tracking-wider text-sky-400">
+              📐 Step 4: Entry, LB Stop &amp; RR Calculator
+            </h3>
+            <span id="buffer-badge" class="mono text-[11px] px-2 py-0.5 rounded bg-sky-500/15 text-sky-300 border border-sky-500/30">
+              Buffer: +$5.00 (50 pips)
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Entry Price (Induced Line Sweep)</label>
+              <input id="inp-entry" type="number" step="any" placeholder="e.g. 2745.50" oninput="calculateRR()" class="mono w-full bg-slate-850 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-sky-500" />
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Raw LB Extreme (Before Buffer)</label>
+              <input id="inp-lb" type="number" step="any" placeholder="e.g. 2738.00" oninput="calculateRR()" class="mono w-full bg-slate-850 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-sky-500" />
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">1st Internal Level (BE / 20% TP1)</label>
+              <input id="inp-tp1" type="number" step="any" placeholder="e.g. 2768.00" oninput="calculateRR()" class="mono w-full bg-slate-850 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-sky-500" />
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Final HTF Target Pool ($$$ TP2)</label>
+              <input id="inp-tp2" type="number" step="any" placeholder="e.g. 2786.00" oninput="calculateRR()" class="mono w-full bg-slate-850 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-sky-500" />
+            </div>
+          </div>
+
+          <!-- Calculated Output Boxes -->
+          <div class="grid grid-cols-3 gap-2.5 mt-3 pt-3 border-t border-slate-800 text-center">
+            <div class="bg-slate-850 border border-slate-800 rounded-xl p-2.5">
+              <div class="text-[10px] uppercase text-slate-400">Final MT5 SL (+Buffer)</div>
+              <div id="out-sl" class="mono text-sm font-bold text-rose-400 mt-0.5">--</div>
+            </div>
+            <div class="bg-slate-850 border border-slate-800 rounded-xl p-2.5">
+              <div class="text-[10px] uppercase text-slate-400">Internal BE RR</div>
+              <div id="out-rr1" class="mono text-sm font-bold text-slate-200 mt-0.5">--</div>
+            </div>
+            <div class="bg-slate-850 border border-slate-800 rounded-xl p-2.5">
+              <div class="text-[10px] uppercase text-slate-400">Final HTF RR (Min 3R)</div>
+              <div id="out-rr2" class="mono text-sm font-bold text-emerald-400 mt-0.5">--</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Decision Verdict Box -->
+        <div id="verdict-box" class="rounded-2xl p-5 border-2 border-slate-700 bg-slate-900 transition-all">
+          <div class="text-xs font-bold uppercase tracking-widest text-slate-400" id="verdict-sub">AWAITING CHECKLIST</div>
+          <div class="text-xl sm:text-2xl font-extrabold mt-1 text-white" id="verdict-title">Complete the 6 Pillars &amp; Price Inputs</div>
+          <p class="text-xs text-slate-300 mt-2 leading-relaxed" id="verdict-desc">
+            Tick each condition on the left and enter your OANDA levels above to verify if this setup qualifies for MT5 execution.
+          </p>
+        </div>
+
+        <!-- Ready-to-Copy MT5 Execution Ticket -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">📋 MT5 Execution Alert Log</h3>
+            <button onclick="copyTicket()" id="copy-btn" class="text-xs px-3 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 font-semibold transition">
+              Copy Ticket
+            </button>
+          </div>
+          <pre id="ticket-output" class="mono text-xs bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-300 whitespace-pre-wrap overflow-x-auto leading-relaxed"></pre>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const PAIRS = [
+      { symbol: 'XAUUSD', name: 'Gold Spot', buffer: 5.00, unit: '$5.00 (50 pips)', decimals: 2, usdGroup: 'USD-SHORT' },
+      { symbol: 'EUR/USD', name: 'Euro / USD', buffer: 0.0003, unit: '3.0 pips', decimals: 5, usdGroup: 'USD-SHORT' },
+      { symbol: 'GBP/USD', name: 'Pound / USD', buffer: 0.0003, unit: '3.0 pips', decimals: 5, usdGroup: 'USD-SHORT' },
+      { symbol: 'USD/JPY', name: 'USD / Yen', buffer: 0.030, unit: '3.0 pips', decimals: 3, usdGroup: 'USD-LONG' },
+      { symbol: 'USD/CAD', name: 'USD / Loonie', buffer: 0.0003, unit: '3.0 pips', decimals: 5, usdGroup: 'USD-LONG' },
+      { symbol: 'GBP/JPY', name: 'Pound / Yen', buffer: 0.060, unit: '6.0 pips', decimals: 3, usdGroup: 'CROSS' }
+    ];
+
+    let currentPair = PAIRS[0];
+    let currentDirection = 'BUY';
+    let calcData = { finalSL: null, rr1: null, rr2: null };
+
+    function renderPairs() {
+      const container = document.getElementById('pair-buttons');
+      container.innerHTML = PAIRS.map(p => {
+        const active = p.symbol === currentPair.symbol;
+        return `
+          <button onclick="selectPair('${p.symbol}')" class="p-2.5 rounded-xl border text-left transition ${
+            active
+              ? 'bg-emerald-500/15 border-emerald-500 text-white shadow-sm'
+              : 'bg-slate-850 border-slate-800 text-slate-400 hover:border-slate-700'
+          }">
+            <div class="mono font-bold text-sm ${active ? 'text-emerald-300' : 'text-slate-200'}">${p.symbol}</div>
+            <div class="text-[11px] text-slate-400 truncate">${p.unit}</div>
+          </button>
+        `;
+      }).join('');
+      document.getElementById('buffer-badge').textContent = `Buffer: +${currentPair.unit}`;
+    }
+
+    function selectPair(symbol) {
+      currentPair = PAIRS.find(p => p.symbol === symbol) || PAIRS[0];
+      renderPairs();
+      calculateRR();
+    }
+
+    function setDirection(dir) {
+      currentDirection = dir;
+      const buyBtn = document.getElementById('dir-buy');
+      const sellBtn = document.getElementById('dir-sell');
+      if (dir === 'BUY') {
+        buyBtn.className = 'py-2.5 px-4 rounded-xl font-bold text-sm border transition flex items-center justify-center gap-2 bg-emerald-500/20 border-emerald-500 text-emerald-300';
+        sellBtn.className = 'py-2.5 px-4 rounded-xl font-bold text-sm border transition flex items-center justify-center gap-2 bg-slate-850 border-slate-800 text-slate-400';
+      } else {
+        sellBtn.className = 'py-2.5 px-4 rounded-xl font-bold text-sm border transition flex items-center justify-center gap-2 bg-rose-500/20 border-rose-500 text-rose-300';
+        buyBtn.className = 'py-2.5 px-4 rounded-xl font-bold text-sm border transition flex items-center justify-center gap-2 bg-slate-850 border-slate-800 text-slate-400';
+      }
+      calculateRR();
+    }
+
+    function calculateRR() {
+      const entry = parseFloat(document.getElementById('inp-entry').value);
+      const lb = parseFloat(document.getElementById('inp-lb').value);
+      const tp1 = parseFloat(document.getElementById('inp-tp1').value);
+      const tp2 = parseFloat(document.getElementById('inp-tp2').value);
+
+      const outSL = document.getElementById('out-sl');
+      const outRR1 = document.getElementById('out-rr1');
+      const outRR2 = document.getElementById('out-rr2');
+
+      if (isNaN(entry) || isNaN(lb)) {
+        outSL.textContent = '--';
+        outRR1.textContent = '--';
+        outRR2.textContent = '--';
+        calcData = { finalSL: null, rr1: null, rr2: null };
+        evaluateSetup();
+        return;
+      }
+
+      const finalSL = currentDirection === 'BUY'
+        ? lb - currentPair.buffer
+        : lb + currentPair.buffer;
+
+      outSL.textContent = finalSL.toFixed(currentPair.decimals);
+
+      const risk = currentDirection === 'BUY' ? (entry - finalSL) : (finalSL - entry);
+
+      if (risk <= 0) {
+        outRR1.textContent = 'Invalid SL';
+        outRR2.textContent = 'Invalid SL';
+        calcData = { finalSL, rr1: -1, rr2: -1 };
+        evaluateSetup();
+        return;
+      }
+
+      let rr1 = null;
+      if (!isNaN(tp1)) {
+        const reward1 = currentDirection === 'BUY' ? (tp1 - entry) : (entry - tp1);
+        rr1 = reward1 / risk;
+        outRR1.textContent = rr1 > 0 ? `${rr1.toFixed(2)}R` : 'Invalid';
+      } else {
+        outRR1.textContent = '--';
+      }
+
+      let rr2 = null;
+      if (!isNaN(tp2)) {
+        const reward2 = currentDirection === 'BUY' ? (tp2 - entry) : (entry - tp2);
+        rr2 = reward2 / risk;
+        outRR2.textContent = rr2 > 0 ? `${rr2.toFixed(2)}R` : 'Invalid';
+        outRR2.className = `mono text-sm font-bold mt-0.5 ${rr2 >= 3.0 ? 'text-emerald-400' : 'text-amber-400'}`;
+      } else {
+        outRR2.textContent = '--';
+      }
+
+      calcData = { finalSL, rr1, rr2 };
+      evaluateSetup();
+    }
+
+    function evaluateSetup() {
+      const vetoes = Array.from(document.querySelectorAll('.veto-check')).filter(c => c.checked).length;
+      const rules = Array.from(document.querySelectorAll('.rule-check'));
+      const checkedRules = rules.filter(c => c.checked).length;
+
+      document.getElementById('checklist-counter').textContent = `${checkedRules} / ${rules.length} YES`;
+
+      const box = document.getElementById('verdict-box');
+      const sub = document.getElementById('verdict-sub');
+      const title = document.getElementById('verdict-title');
+      const desc = document.getElementById('verdict-desc');
+      const model = document.getElementById('entry-model').value;
+
+      let status = 'PENDING';
+
+      if (vetoes > 0) {
+        status = 'VETOED — STAY OUT';
+        box.className = 'rounded-2xl p-5 border-2 border-rose-500 bg-rose-950/30 transition-all';
+        sub.className = 'text-xs font-bold uppercase tracking-widest text-rose-400';
+        sub.textContent = `🛑 ${vetoes} HARD VETO TRIGGERED`;
+        title.textContent = 'NO TRADE — DO NOT FORCE IT';
+        desc.textContent = 'One or more Stay-Out filters (No-More rule, Mid-Range No Man\'s Land, Target already swept, or 4H Wick Veto) are active. Leave your lines on the chart and wait.';
+      } else if (calcData.rr2 !== null && calcData.rr2 > 0 && calcData.rr2 < 3.0 && model.startsWith('Model 1')) {
+        status = 'CONFIRMATION_ONLY (RR < 3.0)';
+        box.className = 'rounded-2xl p-5 border-2 border-amber-500 bg-amber-950/30 transition-all';
+        sub.className = 'text-xs font-bold uppercase tracking-widest text-amber-400';
+        sub.textContent = `⚠️ DIRECT RR IS ${calcData.rr2.toFixed(2)}R (< 3.0R MINIMUM)`;
+        title.textContent = 'SWITCH TO MODEL 2 (5m / 1m CONFIRMATION)';
+        desc.textContent = 'Direct entry SL behind the HTF block gives less than 1:3 RR. Do not place a blind direct limit—wait for price to tap the zone and form a fresh 5m/1m Da Vinci block.';
+      } else if (checkedRules === rules.length && (calcData.rr2 === null || calcData.rr2 >= 3.0)) {
+        status = 'VALID A+ MARCO SETUP';
+        box.className = 'rounded-2xl p-5 border-2 border-emerald-500 bg-emerald-950/30 transition-all';
+        sub.className = 'text-xs font-bold uppercase tracking-widest text-emerald-400';
+        sub.textContent = '✅ ALL 6 PILLARS + FILTERS ALIGNED';
+        title.textContent = `GO FOR ${currentDirection} ON ${currentPair.symbol}`;
+        desc.textContent = 'Execute at the Induced Liquidity Sweep line, place SL outside the LB (+spread buffer), move SL to BE after 1st internal structure break (0–25% partial), and hold 75–80% for Final HTF Pool.';
+      } else {
+        box.className = 'rounded-2xl p-5 border-2 border-slate-700 bg-slate-900 transition-all';
+        sub.className = 'text-xs font-bold uppercase tracking-widest text-slate-400';
+        sub.textContent = `CHECKLIST INCOMPLETE (${checkedRules}/6)`;
+        title.textContent = 'Verify Remaining Da Vinci Pillars';
+        desc.textContent = 'Ensure Engineered Liquidity, Fresh Left-Side LB, and Early Inducement are all present before placing an order on MT5.';
+      }
+
+      updateTicket(status, checkedRules, rules.length, vetoes);
+    }
+
+    function updateTicket(status, checkedRules, totalRules, vetoes) {
+      const entry = document.getElementById('inp-entry').value || '--';
+      const tp1 = document.getElementById('inp-tp1').value || '--';
+      const tp2 = document.getElementById('inp-tp2').value || '--';
+      const sl = calcData.finalSL ? calcData.finalSL.toFixed(currentPair.decimals) : '--';
+      const rr2 = (calcData.rr2 && calcData.rr2 > 0) ? `${calcData.rr2.toFixed(2)}R` : '--';
+      const model = document.getElementById('entry-model').value;
+      const dhakaNow = document.getElementById('dhaka-clock').textContent;
+
+      const text =
+`[MARCO DA VINCI SCAN] ${currentPair.symbol} — ${currentDirection}
+Status      : ${status} (Checklist: ${checkedRules}/${totalRules}, Vetoes: ${vetoes})
+Entry Model : ${model}
+Entry Level : ${entry} (Sweep of Induced Liquidity)
+Stop Loss   : ${sl} (Outside LB + ${currentPair.unit} buffer)
+BE / TP1    : ${tp1} (1st Internal Pool -> Move SL to BE / Max 20-25% Partial)
+Final TP2   : ${tp2} (Untaken HTF Pool -> Hold 75-80% Volume | RR: ${rr2})
+Check Time  : ${dhakaNow} Dhaka (OANDA Chart -> Manual MT5 Execution)`;
+
+      document.getElementById('ticket-output').textContent = text;
+    }
+
+    function copyTicket() {
+      const text = document.getElementById('ticket-output').textContent;
+      navigator.clipboard.writeText(text);
+      const btn = document.getElementById('copy-btn');
+      btn.textContent = 'Copied!';
+      setTimeout(() => { btn.textContent = 'Copy Ticket'; }, 1800);
+    }
+
+    function resetAll() {
+      document.querySelectorAll('.veto-check, .rule-check').forEach(c => c.checked = false);
+      ['inp-entry', 'inp-lb', 'inp-tp1', 'inp-tp2'].forEach(id => document.getElementById(id).value = '');
+      calculateRR();
+    }
+
+    function updateClocks() {
+      const now = new Date();
+      const dhakaStr = now.toLocaleTimeString('en-GB', { timeZone: 'Asia/Dhaka', hour12: true });
+      const estStr = now.toLocaleTimeString('en-US', { timeZone: 'America/Toronto', hour12: true });
+      document.getElementById('dhaka-clock').textContent = dhakaStr.toUpperCase();
+      document.getElementById('est-clock').textContent = estStr.toUpperCase();
+
+      const dhakaHour = parseInt(now.toLocaleTimeString('en-GB', { timeZone: 'Asia/Dhaka', hour: '2-digit', hour12: false }), 10);
+      const badge = document.getElementById('session-badge');
+
+      if (dhakaHour >= 18 && dhakaHour <= 22) {
+        badge.className = 'px-3 py-2 rounded-lg text-xs font-bold border border-emerald-500/40 bg-emerald-500/15 text-emerald-300';
+        badge.textContent = '🔥 NY EXECUTION WINDOW (PRIME)';
+      } else if (dhakaHour >= 13 && dhakaHour < 18) {
+        badge.className = 'px-3 py-2 rounded-lg text-xs font-bold border border-sky-500/40 bg-sky-500/15 text-sky-300';
+        badge.textContent = '⚡ LONDON BUILDUP / LIMIT FILL';
+      } else if (dhakaHour >= 8 && dhakaHour <= 10) {
+        badge.className = 'px-3 py-2 rounded-lg text-xs font-bold border border-amber-500/40 bg-amber-500/15 text-amber-300';
+        badge.textContent = '🌙 ASIA SCAN / SET & FORGET LIMITS';
+      } else {
+        badge.className = 'px-3 py-2 rounded-lg text-xs font-bold border border-slate-700 bg-slate-800 text-slate-400';
+        badge.textContent = '💤 OFF-PEAK (WATCH ONLY)';
+      }
+    }
+
+    renderPairs();
+    updateClocks();
+    setInterval(updateClocks, 1000);
+    evaluateSetup();
+  </script>
+</body>
+</html>
