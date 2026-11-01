@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Marco Da Vinci & LB Trade Finder</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background-color: #0b0f19; color: #e2e8f0; font-family: system-ui, -apple-system, sans-serif; }
+    .card { background-color: #111827; border: 1px solid #1f2937; border-radius: 0.75rem; }
+    input[type="number"], select { background-color: #1f2937; border: 1px solid #374151; color: #fff; }
+  </style>
+</head>
+<body class="p-4 md:p-6 max-w-6xl mx-auto">
+
+  <!-- Header -->
+  <div class="card p-4 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div>
+      <h1 class="text-xl md:text-2xl font-bold text-white flex items-center gap-2">
+        🎯 Marco Trading Style — Live Trade Finder (Da Vinci & LB v2.0)
+      </h1>
+      <p class="text-xs text-slate-400 mt-1">100% Authentic Video Rules • Induced Sweep Entry • Liquidity Block SL • 1:3+ RR Filter</p>
+    </div>
+    <div class="text-right bg-slate-900 px-4 py-2 rounded-lg border border-slate-800">
+      <div id="dhaka-time" class="text-sm font-mono font-bold text-emerald-400">Dhaka Time: --:--:--</div>
+      <div id="session-badge" class="text-xs text-slate-300 mt-0.5">Session: Checking...</div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    
+    <!-- Left Column: 8-Step Checklist -->
+    <div class="lg:col-span-7 space-y-4">
+      
+      <!-- Pair & Bias Selection -->
+      <div class="card p-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div>
+          <label class="text-xs text-slate-400 block mb-1">Select Pair (OANDA/MT5)</label>
+          <select id="pair" onchange="calculateTrade()" class="w-full p-2 rounded text-sm font-semibold">
+            <option value="XAUUSD">XAUUSD (Gold)</option>
+            <option value="EUR/USD">EUR/USD</option>
+            <option value="GBP/USD">GBP/USD</option>
+            <option value="USD/JPY">USD/JPY</option>
+            <option value="USD/CAD">USD/CAD</option>
+            <option value="GBP/JPY">GBP/JPY</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs text-slate-400 block mb-1">HTF Direction (Daily/4H)</label>
+          <select id="direction" onchange="calculateTrade()" class="w-full p-2 rounded text-sm font-semibold">
+            <option value="SELL">BEARISH (SELL ONLY)</option>
+            <option value="BUY">BULLISH (BUY ONLY)</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs text-slate-400 block mb-1">Entry Model</label>
+          <select id="model" onchange="calculateTrade()" class="w-full p-2 rounded text-sm font-semibold">
+            <option value="Model 1: Direct Sweep Limit">Model 1: Direct Sweep Limit</option>
+            <option value="Model 2: LTF Confirmation LB">Model 2: LTF (5m/1m) Confirm</option>
+            <option value="Model 3: 30m Candle Sweep">Model 3: 30m Candle Sweep</option>
+            <option value="Model 4: Exact Hour 5m Close">Model 4: Exact Hour 5m Close</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Hard Veto / Stay-Out Check -->
+      <div class="card p-4 border-red-900/60">
+        <h2 class="text-sm font-bold text-red-400 uppercase tracking-wider mb-3">🛑 Step 1: Hard Veto Filters (Tick if CLEAR)</h2>
+        <div class="space-y-2.5 text-sm">
+          <label class="flex items-start gap-2.5 cursor-pointer">
+            <input type="checkbox" class="check-item mt-1 w-4 h-4 accent-emerald-500" onchange="calculateTrade()">
+            <span><strong>Not in "No Man's Land":</strong> Price choppy mid-range-er majhkhane nei, extreme level-e ache.</span>
+          </label>
+          <label class="flex items-start gap-2.5 cursor-pointer">
+            <input type="checkbox" class="check-item mt-1 w-4 h-4 accent-emerald-500" onchange="calculateTrade()">
+            <span><strong>"No-More Rule" Clear (Video 4):</strong> Opposite side already induce + trap hoye jayni (e.g., Buyers trapped hole NO MORE SELLS).</span>
+          </label>
+          <label class="flex items-start gap-2.5 cursor-pointer">
+            <input type="checkbox" class="check-item mt-1 w-4 h-4 accent-emerald-500" onchange="calculateTrade()">
+            <span><strong>Not an Inside Day / Bank Holiday:</strong> Ager din massive high+low sweep day na, ebong aj US/UK Bank Holiday na.</span>
+          </label>
+          <label class="flex items-start gap-2.5 cursor-pointer">
+            <input type="checkbox" class="check-item mt-1 w-4 h-4 accent-emerald-500" onchange="calculateTrade()">
+            <span><strong>4H Wick Veto Clear (Video 9):</strong> 4H candle bamer level-ke sweep na kore shudhu respect kore ulto dike jayni.</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Da Vinci & LB Core Checklist -->
+      <div class="card p-4">
+        <h2 class="text-sm font-bold text-emerald-400 uppercase tracking-wider mb-3">✅ Step 2: Da Vinci & Liquidity Block Setup</h2>
+        <div class="space-y-2.5 text-sm">
+          <label class="flex items-start gap-2.5 cursor-pointer">
+            <input type="checkbox" class="check-item mt-1 w-4 h-4 accent-emerald-500" onchange="calculateTrade()">
+            <span><strong>1. Left-Side Fresh LB (No Liquidity):</strong> Bame ekta fresh, unmitigated Liquidity Block ache ja age purono high/low sweep korechilo.</span>
+          </label>
+          <label class="flex items-start gap-2.5 cursor-pointer">
+            <input type="checkbox" class="check-item mt-1 w-4 h-4 accent-emerald-500" onchange="calculateTrade()">
+            <span><strong>2. Engineered Liquidity ($$$ Target):</strong> Opposite side-e untaken liquidity pool (equal highs/lows, breadcrumbs, ba PDH/PDL) intact ache.</span>
+          </label>
+          <label class="flex items-start gap-2.5 cursor-pointer">
+            <input type="checkbox" class="check-item mt-1 w-4 h-4 accent-emerald-500" onchange="calculateTrade()">
+            <span><strong>3. Early Traders Induced (BOS):</strong> LB-er samne/ভেতরে sharp move hoye early buyers (for Buy) ba early sellers (for Sell) induce hoyeche.</span>
+          </label>
+          <label class="flex items-start gap-2.5 cursor-pointer">
+            <input type="checkbox" class="check-item mt-1 w-4 h-4 accent-emerald-500" onchange="calculateTrade()">
+            <span><strong>4. Nearer-Trap Checked (Video 5):</strong> Look Left kore dekhechi kache kono internal trap durer level-ke replace koreni.</span>
+          </label>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right Column: Calculator & Verdict -->
+    <div class="lg:col-span-5 space-y-4">
+      
+      <!-- Price Level Calculator -->
+      <div class="card p-4">
+        <h2 class="text-sm font-bold text-sky-400 uppercase tracking-wider mb-3">📐 Step 3: Entry, LB SL & RR Calculator</h2>
+        <div class="space-y-3 text-sm">
+          <div>
+            <label class="text-xs text-slate-400 block mb-1">Entry Price (Induced Liquidity Sweep Line)</label>
+            <input type="number" id="entry" step="any" placeholder="e.g. 2750.00 or 1.0850" oninput="calculateTrade()" class="w-full p-2 rounded">
+          </div>
+          <div>
+            <label class="text-xs text-slate-400 block mb-1">Liquidity Block (LB) Extreme High/Low</label>
+            <input type="number" id="lb_extreme" step="any" placeholder="Exact edge of left-side LB" oninput="calculateTrade()" class="w-full p-2 rounded">
+          </div>
+          <div>
+            <label class="text-xs text-slate-400 block mb-1">1st Internal Liquidity (BE / 20% Partial Trigger)</label>
+            <input type="number" id="tp1" step="any" placeholder="Optional internal level" oninput="calculateTrade()" class="w-full p-2 rounded">
+          </div>
+          <div>
+            <label class="text-xs text-slate-400 block mb-1">Final HTF Target (Engineered Liquidity / PDH-PDL)</label>
+            <input type="number" id="tp_final" step="any" placeholder="Untaken opposite $$$ pool" oninput="calculateTrade()" class="w-full p-2 rounded">
+          </div>
+        </div>
+
+        <!-- Calculated Outputs -->
+        <div class="mt-4 pt-3 border-t border-slate-800 grid grid-cols-2 gap-3 text-xs">
+          <div class="bg-slate-900 p-2.5 rounded">
+            <span class="text-slate-400 block">SL with Spread Buffer:</span>
+            <span id="sl-buffered" class="text-base font-mono font-bold text-amber-400">--</span>
+          </div>
+          <div class="bg-slate-900 p-2.5 rounded">
+            <span class="text-slate-400 block">Final Target RR:</span>
+            <span id="rr-output" class="text-base font-mono font-bold text-white">--</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Final Verdict Box -->
+      <div id="verdict-box" class="card p-4 border-2 border-slate-700">
+        <div class="text-xs uppercase tracking-wider text-slate-400">System Verdict</div>
+        <div id="verdict-title" class="text-lg font-bold text-slate-200 mt-1">Waiting for Checklist & Levels...</div>
+        <p id="verdict-desc" class="text-xs text-slate-400 mt-1">Tick all 8 rules on the left and enter price levels above.</p>
+      </div>
+
+      <!-- Copyable Trade Plan Card -->
+      <div class="card p-4">
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-xs font-bold uppercase text-slate-400">📋 MT5 Execution Ticket</span>
+          <button onclick="copyTicket()" id="copy-btn" class="text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded font-medium">Copy Plan</button>
+        </div>
+        <pre id="ticket-text" class="text-xs font-mono bg-slate-950 p-3 rounded border border-slate-800 whitespace-pre-wrap text-slate-300"></pre>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    function updateClock() {
+      const now = new Date();
+      const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+      const dhaka = new Date(utc + (3600000 * 6));
+      const h = dhaka.getHours();
+      const m = String(dhaka.getMinutes()).padStart(2, '0');
+      const s = String(dhaka.getSeconds()).padStart(2, '0');
+      document.getElementById('dhaka-time').textContent = `Dhaka Time: ${String(h).padStart(2,'0')}:${m}:${s} (GMT+6)`;
+
+      let session = "Asia / Off-Peak (Check Limit Setups)";
+      if (h >= 8 && h < 10) session = "🟢 Marco Pre-Bedtime Limit Window (8:00-10:00 AM)";
+      else if (h >= 13 && h < 18) session = "🟡 London Buildup / Trap Context (1:00-6:00 PM)";
+      else if (h >= 18 && h <= 22) session = "🔥 NY Execution Window (6:00-10:30 PM)";
+      document.getElementById('session-badge').textContent = session;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    function getBuffer(pair) {
+      if (pair === 'XAUUSD') return 5.00; // 50 pips ($5.00) on Gold per Video 11
+      if (pair.includes('JPY')) return 0.04; // 4 pips on JPY pairs
+      return 0.0003; // 3 pips on standard Forex majors
+    }
+
+    function calculateTrade() {
+      const pair = document.getElementById('pair').value;
+      const dir = document.getElementById('direction').value;
+      const model = document.getElementById('model').value;
+      const entry = parseFloat(document.getElementById('entry').value);
+      const lb = parseFloat(document.getElementById('lb_extreme').value);
+      const tp1 = parseFloat(document.getElementById('tp1').value);
+      const tpFinal = parseFloat(document.getElementById('tp_final').value);
+
+      const checks = document.querySelectorAll('.check-item');
+      let checkedCount = 0;
+      checks.forEach(c => { if (c.checked) checkedCount++; });
+
+      const buffer = getBuffer(pair);
+      const decimals = pair === 'XAUUSD' ? 2 : (pair.includes('JPY') ? 3 : 5);
+
+      let slBuffered = NaN;
+      let rr = NaN;
+
+      if (!isNaN(entry) && !isNaN(lb)) {
+        slBuffered = dir === 'SELL' ? (lb + buffer) : (lb - buffer);
+        document.getElementById('sl-buffered').textContent = slBuffered.toFixed(decimals);
+
+        if (!isNaN(tpFinal)) {
+          const risk = dir === 'SELL' ? (slBuffered - entry) : (entry - slBuffered);
+          const reward = dir === 'SELL' ? (entry - tpFinal) : (tpFinal - entry);
+          if (risk > 0 && reward > 0) {
+            rr = reward / risk;
+            document.getElementById('rr-output').textContent = `1 : ${rr.toFixed(2)}`;
+          } else {
+            document.getElementById('rr-output').textContent = "Invalid Dir";
+          }
+        }
+      } else {
+        document.getElementById('sl-buffered').textContent = "--";
+        document.getElementById('rr-output').textContent = "--";
+      }
+
+      const vBox = document.getElementById('verdict-box');
+      const vTitle = document.getElementById('verdict-title');
+      const vDesc = document.getElementById('verdict-desc');
+
+      if (checkedCount < 8) {
+        vBox.className = "card p-4 border-2 border-amber-500/60 bg-amber-950/20";
+        vTitle.className = "text-lg font-bold text-amber-400 mt-1";
+        vTitle.textContent = `⚠️ STAY OUT — Checklist Incomplete (${checkedCount}/8)`;
+        vDesc.textContent = "Marco Rule: Sob 8-ti condition 'YES' na hole trade neoa jabe na.";
+      } else if (isNaN(rr) || rr <= 0) {
+        vBox.className = "card p-4 border-2 border-sky-500/60 bg-sky-950/20";
+        vTitle.className = "text-lg font-bold text-sky-400 mt-1";
+        vTitle.textContent = "Checklist Ready (8/8) — Enter Price Levels";
+        vDesc.textContent = "Enter Entry, LB Extreme, and Final TP to check the 1:3 RR filter.";
+      } else if (rr < 3.0) {
+        vBox.className = "card p-4 border-2 border-red-500 bg-red-950/30";
+        vTitle.className = "text-lg font-bold text-red-400 mt-1";
+        vTitle.textContent = `🛑 NO DIRECT TRADE (RR is 1:${rr.toFixed(2)} < 1:3.0)`;
+        vDesc.textContent = "Marco Rule (Vol 3 & Da Vinci): Stop Loss boro howay RR 1:3-er niche. Direct entry nio na! 5m/1m-e giye Model 2 (LTF Confirmation Block) khujo.";
+      } else {
+        vBox.className = "card p-4 border-2 border-emerald-500 bg-emerald-950/30";
+        vTitle.className = "text-lg font-bold text-emerald-400 mt-1";
+        vTitle.textContent = `✅ VALID MARCO SETUP — GO (1:${rr.toFixed(2)} RR)`;
+        vDesc.textContent = "All 8 Da Vinci & LB criteria met. Set predetermined SL & TP on MT5 and let it play out!";
+      }
+
+      const tp1Text = !isNaN(tp1) ? `${tp1.toFixed(decimals)} (Move SL to BE / Max 20-25% Partial)` : "1st Internal Structure Break -> Move SL to BE";
+      document.getElementById('ticket-text').textContent =
+`PAIR: ${pair} | DIRECTION: ${dir}
+MODEL: ${model}
+CHECKLIST: ${checkedCount}/8 Passed
+----------------------------------------
+ENTRY (Induced Sweep): ${!isNaN(entry) ? entry.toFixed(decimals) : '--'}
+LB EXTREME:            ${!isNaN(lb) ? lb.toFixed(decimals) : '--'}
+MT5 STOP LOSS (+Buf):  ${!isNaN(slBuffered) ? slBuffered.toFixed(decimals) : '--'}
+BE / 1ST INTERNAL:     ${tp1Text}
+FINAL HTF TARGET:      ${!isNaN(tpFinal) ? tpFinal.toFixed(decimals) : '--'}
+RISK : REWARD:         ${!isNaN(rr) && rr > 0 ? '1 : ' + rr.toFixed(2) : '--'}
+----------------------------------------
+RULE REMINDER: Do NOT roll SL early on minor squeeze!`;
+    }
+
+    function copyTicket() {
+      const text = document.getElementById('ticket-text').textContent;
+      navigator.clipboard.writeText(text);
+      const btn = document.getElementById('copy-btn');
+      btn.textContent = "Copied!";
+      setTimeout(() => btn.textContent = "Copy Plan", 1500);
+    }
+
+    calculateTrade();
+  </script>
+</body>
+</html>
