@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Marco Super Model v13.0 — Live TradingView Chart & Accurate Blue-Box Finder</title>
+  <title>Marco Super Model v14.0 — BD ISP-Safe Real-Time Trade Finder</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { background-color: #050811; color: #e2e8f0; font-family: system-ui, -apple-system, sans-serif; }
@@ -21,10 +21,10 @@
   <div class="card p-4 mb-4 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
     <div>
       <div class="flex items-center gap-2 flex-wrap">
-        <span class="bg-blue-500/20 text-blue-400 border border-blue-500/40 text-xs font-extrabold px-2.5 py-1 rounded">🟦 MARCO SUPER MODEL v13.0</span>
+        <span class="bg-blue-500/20 text-blue-400 border border-blue-500/40 text-xs font-extrabold px-2.5 py-1 rounded">🟦 MARCO SUPER MODEL v14.0</span>
         <span id="feed-status" class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-xs font-bold px-2.5 py-1 rounded flex items-center gap-1.5">
           <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></span>
-          <span id="feed-status-text">⏳ Syncing Live Market Candles...</span>
+          <span id="feed-status-text">⏳ Connecting BD-Safe Real-Time Feed...</span>
         </span>
         <h1 class="text-lg md:text-xl font-bold text-white">24-Video Live TradingView & Blue-Box Trade Finder</h1>
       </div>
@@ -38,7 +38,7 @@
     <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-between lg:justify-end">
       <div class="bg-slate-900 px-3.5 py-2 rounded-lg border border-slate-800 text-right">
         <div id="dhaka-clock" class="text-sm font-mono font-bold text-emerald-400">Dhaka: --:--:--</div>
-        <div id="session-badge" class="text-[11px] font-mono text-sky-400">Live 1s Stream Active</div>
+        <div id="session-badge" class="text-[11px] font-mono text-sky-400">Live Stream Active</div>
       </div>
       <button onclick="runFullMarketScan()" id="scan-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2.5 rounded-lg shadow">
         🔄 Scan Live Market Now
@@ -51,9 +51,9 @@
     <div class="flex flex-wrap justify-between items-center gap-2 mb-2">
       <div class="flex items-center gap-2">
         <span class="bg-sky-500/20 text-sky-300 border border-sky-500/40 text-xs font-bold px-2 py-0.5 rounded">📅 1D (ONE DAY) DAILY CHART FRAMING</span>
-        <span id="d1-pair-title" class="text-sm font-bold text-white">XAUUSD Daily Framing</span>
+        <span id="d1-pair-title" class="text-sm font-bold text-white">GBP/USD Daily Framing</span>
       </div>
-      <span id="d1-candle-date" class="text-xs font-mono text-amber-300">Current 1D Candle: --</span>
+      <span id="d1-candle-date" class="text-xs font-mono text-amber-300">Current 1D Candle: Loading...</span>
     </div>
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 text-xs">
       <div class="bg-slate-950 p-2 rounded border border-slate-800">
@@ -91,7 +91,7 @@
       <button onclick="setFilter('TRIGGERED')" id="flt-TRIGGERED" class="text-xs px-3 py-1.5 rounded-lg font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">⚡ Triggered / Active</button>
       <button onclick="setFilter('HIT_TP')" id="flt-HIT_TP" class="text-xs px-3 py-1.5 rounded-lg font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">🎯 TP Hit / Completed</button>
     </div>
-    <div id="last-sync-label" class="text-xs font-mono text-slate-400">Last Live Scan: --</div>
+    <div id="last-sync-label" class="text-xs font-mono text-slate-400">Last Live Scan: Initializing...</div>
   </div>
 
   <!-- 6 Pair Cards Grid -->
@@ -108,7 +108,7 @@
         <div class="flex justify-between items-start">
           <div>
             <span id="st-badge" class="text-[11px] font-bold uppercase px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">READY</span>
-            <h2 id="st-title" class="text-xl font-bold text-white mt-1.5">XAUUSD</h2>
+            <h2 id="st-title" class="text-xl font-bold text-white mt-1.5">GBP/USD</h2>
             <div id="st-source" class="text-[11px] text-sky-400 font-mono mt-0.5">Live Real-Time Feed</div>
           </div>
           <div class="text-right">
@@ -220,35 +220,40 @@
 
     </div>
 
-    <!-- Right 7 Cols: Official Live TradingView Chart + Visual Blue-Box Guide Bar -->
+    <!-- Right 7 Cols: Official Live TradingView Chart + Drawn Blue-Box Toggle -->
     <div class="lg:col-span-7 space-y-4">
       
       <div class="card p-3">
-        <!-- Timeframe & Feed Switcher Bar -->
+        <!-- Timeframe & Chart Mode Bar -->
         <div class="flex flex-wrap justify-between items-center gap-2 mb-2.5 px-1">
-          <div class="flex items-center gap-2">
-            <span class="text-xs font-bold text-white">📊 Official Live TradingView Chart</span>
+          <div class="flex flex-wrap items-center gap-1.5">
+            <button onclick="switchViewMode('TV')" id="vmode-TV" class="text-xs px-2.5 py-1 rounded font-bold bg-emerald-600 text-white">
+              📊 Live TradingView Chart
+            </button>
+            <button onclick="switchViewMode('DRAWN')" id="vmode-DRAWN" class="text-xs px-2.5 py-1 rounded font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">
+              🟦 Drawn Blue-Box & Red-Box View
+            </button>
             <select id="tv-broker-select" onchange="reloadTradingViewWidget()" class="bg-slate-800 border border-slate-700 text-xs text-sky-300 font-mono px-2 py-1 rounded">
-              <option value="MATCH">Exact Scanner Feed (100% Level Match)</option>
-              <option value="OANDA">OANDA Broker Chart</option>
-              <option value="FX">FXCM / IDC Spot Chart</option>
+              <option value="MATCH">Exact Scanner Feed (100% Match)</option>
+              <option value="FX">FX_IDC Spot Chart</option>
+              <option value="OANDA">OANDA Chart</option>
             </select>
           </div>
 
           <div class="flex items-center gap-1">
-            <span class="text-[11px] text-slate-400 mr-1">Timeframe:</span>
-            <button onclick="setChartTF('5m')" id="tfbtn-5m" class="text-xs px-2.5 py-1 rounded font-mono bg-slate-800 text-slate-300 hover:bg-slate-700">5m</button>
-            <button onclick="setChartTF('15m')" id="tfbtn-15m" class="text-xs px-2.5 py-1 rounded font-mono bg-emerald-600 text-white font-bold">15m</button>
-            <button onclick="setChartTF('1h')" id="tfbtn-1h" class="text-xs px-2.5 py-1 rounded font-mono bg-slate-800 text-slate-300 hover:bg-slate-700">1H</button>
-            <button onclick="setChartTF('4h')" id="tfbtn-4h" class="text-xs px-2.5 py-1 rounded font-mono bg-slate-800 text-slate-300 hover:bg-slate-700">4H</button>
-            <button onclick="setChartTF('1d')" id="tfbtn-1d" class="text-xs px-2.5 py-1 rounded font-mono bg-sky-600/40 border border-sky-400 text-sky-200 font-bold">1D (Daily)</button>
+            <span class="text-[11px] text-slate-400 mr-1">TF:</span>
+            <button onclick="setChartTF('5m')" id="tfbtn-5m" class="text-xs px-2 py-0.5 rounded font-mono bg-slate-800 text-slate-300 hover:bg-slate-700">5m</button>
+            <button onclick="setChartTF('15m')" id="tfbtn-15m" class="text-xs px-2 py-0.5 rounded font-mono bg-emerald-600 text-white font-bold">15m</button>
+            <button onclick="setChartTF('1h')" id="tfbtn-1h" class="text-xs px-2 py-0.5 rounded font-mono bg-slate-800 text-slate-300 hover:bg-slate-700">1H</button>
+            <button onclick="setChartTF('4h')" id="tfbtn-4h" class="text-xs px-2 py-0.5 rounded font-mono bg-slate-800 text-slate-300 hover:bg-slate-700">4H</button>
+            <button onclick="setChartTF('1d')" id="tfbtn-1d" class="text-xs px-2 py-0.5 rounded font-mono bg-sky-600/40 border border-sky-400 text-sky-200 font-bold">1D</button>
           </div>
         </div>
 
         <!-- Visual Blue Box & Red Box Reference Strip right above Live Chart -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mb-2.5 text-[11px] font-mono">
           <div class="p-2 rounded bg-blue-950/40 border border-blue-500/50">
-            <span class="text-blue-300 font-bold block">🟦 BLUE BOX (LB Zone on Chart):</span>
+            <span class="text-blue-300 font-bold block">🟦 BLUE BOX (LB Zone):</span>
             <span id="guide-bluebox" class="text-white font-bold">--</span>
             <span id="guide-lbtime" class="block text-[10px] text-slate-400">--</span>
           </div>
@@ -265,7 +270,12 @@
         </div>
 
         <!-- Official Interactive Live TradingView Chart Container -->
-        <div id="tv-live-container" class="w-full h-[500px] rounded overflow-hidden border border-slate-800 bg-[#050811]"></div>
+        <div id="tv-live-container" class="w-full h-[490px] rounded overflow-hidden border border-slate-800 bg-[#050811]"></div>
+
+        <!-- Optional Drawn Blue Box Canvas Container -->
+        <div id="drawn-canvas-container" class="w-full h-[490px] rounded overflow-hidden border border-slate-800 bg-[#050811] hidden relative">
+          <canvas id="marco-canvas" class="w-full h-full block"></canvas>
+        </div>
       </div>
 
       <!-- Step-by-Step 24-Video Logic Explanation -->
@@ -303,11 +313,19 @@
   <script>
     const PAIRS = ["XAUUSD", "EUR/USD", "GBP/USD", "USD/JPY", "USD/CAD", "GBP/JPY"];
 
-    // Symbol maps for Live TradingView Widget
     const TV_SYMBOLS_MATCH = {
       "XAUUSD": "BINANCE:PAXGUSDT",
       "EUR/USD": "BINANCE:EURUSDT",
       "GBP/USD": "BINANCE:GBPUSDT",
+      "USD/JPY": "FX_IDC:USDJPY",
+      "USD/CAD": "FX_IDC:USDCAD",
+      "GBP/JPY": "FX_IDC:GBPJPY"
+    };
+
+    const TV_SYMBOLS_FX = {
+      "XAUUSD": "FX_IDC:XAUUSD",
+      "EUR/USD": "FX_IDC:EURUSD",
+      "GBP/USD": "FX_IDC:GBPUSD",
       "USD/JPY": "FX_IDC:USDJPY",
       "USD/CAD": "FX_IDC:USDCAD",
       "GBP/JPY": "FX_IDC:GBPJPY"
@@ -322,15 +340,6 @@
       "GBP/JPY": "OANDA:GBPJPY"
     };
 
-    const TV_SYMBOLS_FX = {
-      "XAUUSD": "FX_IDC:XAUUSD",
-      "EUR/USD": "FX_IDC:EURUSD",
-      "GBP/USD": "FX_IDC:GBPUSD",
-      "USD/JPY": "FX_IDC:USDJPY",
-      "USD/CAD": "FX_IDC:USDCAD",
-      "GBP/JPY": "FX_IDC:GBPJPY"
-    };
-
     const marketData = {};
     const livePrices = {};
     const setups = {};
@@ -338,6 +347,7 @@
     let selectedPair = "GBP/USD";
     let activeFilter = "ALL";
     let activeTF = "15m";
+    let viewMode = "TV";
 
     function fmtDhaka(tsSec) {
       if (!tsSec) return "--";
@@ -373,16 +383,9 @@
     }
 
     function getBuf(pair) {
-      if (pair === "XAUUSD") return 5.00; // $5.00 (50 pips) on Gold per Video 11
-      if (pair.includes("JPY")) return 0.050; // 5 pips on JPY
-      return 0.00030; // 3 pips on Forex Majors
-    }
-
-    function calcPips(pair, p1, p2) {
-      const diff = Math.abs(p1 - p2);
-      if (pair === "XAUUSD") return `${(diff * 10).toFixed(1)} pips ($${diff.toFixed(2)})`;
-      if (pair.includes("JPY")) return `${(diff * 100).toFixed(1)} pips`;
-      return `${(diff * 10000).toFixed(1)} pips";
+      if (pair === "XAUUSD") return 5.00;
+      if (pair.includes("JPY")) return 0.050;
+      return 0.00030;
     }
 
     function formatPipDist(pair, p1, p2) {
@@ -392,71 +395,104 @@
       return (diff * 10000).toFixed(1) + " pips";
     }
 
-    // 1. Fetch High-Speed Binance Klines (Used in v8.0/v9.0 where XAUUSD & GBP/USD were 100% accurate!)
-    async function fetchBinanceKlines(symbol, interval, limit = 100) {
-      const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`);
-      if (!res.ok) throw new Error("Binance status " + res.status);
-      const rows = await res.json();
-      return rows.map(r => ({
-        time: Math.floor(Number(r[0]) / 1000),
-        open: parseFloat(r[1]),
-        high: parseFloat(r[2]),
-        low: parseFloat(r[3]),
-        close: parseFloat(r[4])
-      }));
-    }
+    // BD ISP-Safe Multi-Mirror Binance Fetcher (Tries data-api.binance.vision first, then api.binance.com, then CryptoCompare)
+    async function fetchBinanceMirrorKlines(symbol, interval, limit) {
+      const endpoints = [
+        "https://data-api.binance.vision/api/v3/klines?symbol=" + symbol + "&interval=" + interval + "&limit=" + limit,
+        "https://api.binance.com/api/v3/klines?symbol=" + symbol + "&interval=" + interval + "&limit=" + limit,
+        "https://api1.binance.com/api/v3/klines?symbol=" + symbol + "&interval=" + interval + "&limit=" + limit
+      ];
 
-    // 2. Fetch Kraken Live Spot Ticker for exact USD/JPY and USD/CAD current price
-    async function fetchLiveKrakenSpot() {
-      try {
-        const res = await fetch("https://api.kraken.com/0/public/Ticker?pair=USDJPY,USDCAD");
-        const j = await res.json();
-        if (j && j.result) {
-          for (const k of Object.keys(j.result)) {
-            if (k.includes("JPY")) livePrices["USD/JPY"] = parseFloat(j.result[k].c[0]);
-            if (k.includes("CAD")) livePrices["USD/CAD"] = parseFloat(j.result[k].c[0]);
-          }
-        }
-      } catch (e) {}
-      // Fallback to open.er-api ONLY if Kraken ticker didn't respond
-      if (!livePrices["USD/JPY"] || !livePrices["USD/CAD"]) {
+      for (let i = 0; i < endpoints.length; i++) {
         try {
-          const rRes = await fetch("https://open.er-api.com/v6/latest/USD");
-          const rJson = await rRes.json();
-          if (rJson && rJson.rates) {
-            if (!livePrices["USD/JPY"]) livePrices["USD/JPY"] = rJson.rates.JPY;
-            if (!livePrices["USD/CAD"]) livePrices["USD/CAD"] = rJson.rates.CAD;
+          const res = await fetch(endpoints[i]);
+          if (res.ok) {
+            const rows = await res.json();
+            if (Array.isArray(rows) && rows.length > 5) {
+              return rows.map(r => ({
+                time: Math.floor(Number(r[0]) / 1000),
+                open: parseFloat(r[1]),
+                high: parseFloat(r[2]),
+                low: parseFloat(r[3]),
+                close: parseFloat(r[4])
+              }));
+            }
           }
         } catch (e) {}
       }
+
+      // Fallback to CryptoCompare if all Binance mirrors are blocked
+      const ccMap = {
+        "PAXGUSDT": { fsym: "PAXG", tsym: "USD" },
+        "EURUSDT":  { fsym: "EUR",  tsym: "USD" },
+        "GBPUSDT":  { fsym: "GBP",  tsym: "USD" },
+        "BTCUSDT":  { fsym: "BTC",  tsym: "USD" },
+        "BTCJPY":   { fsym: "BTC",  tsym: "JPY" }
+      };
+      const cfg = ccMap[symbol] || { fsym: "PAXG", tsym: "USD" };
+      let ep = "histominute";
+      let agg = 15;
+      if (interval === "1d") { ep = "histoday"; agg = 1; }
+      else if (interval === "4h") { ep = "histohour"; agg = 4; }
+      else if (interval === "1h") { ep = "histohour"; agg = 1; }
+      else if (interval === "5m") { ep = "histominute"; agg = 5; }
+
+      const ccUrl = "https://min-api.cryptocompare.com/data/v2/" + ep + "?fsym=" + cfg.fsym + "&tsym=" + cfg.tsym + "&limit=" + limit + "&aggregate=" + agg;
+      const ccRes = await fetch(ccUrl);
+      const ccJson = await ccRes.json();
+      if (ccJson && ccJson.Data && Array.isArray(ccJson.Data.Data)) {
+        return ccJson.Data.Data.filter(d => d.open > 0).map(d => ({
+          time: Number(d.time),
+          open: Number(d.open),
+          high: Number(d.high),
+          low: Number(d.low),
+          close: Number(d.close)
+        }));
+      }
+      throw new Error("Could not load klines for " + symbol);
     }
 
-    /**
-     * 3. LOAD ALL 6 PAIRS WITH STRICT TIMESTAMP ALIGNMENT (ZERO OCTOBER BUG!)
-     * - XAUUSD, EUR/USD, GBP/USD: Direct from Binance Spot Klines (PAXGUSDT, EURUSDT, GBPUSDT) — exact v8.0/v9.0 feed!
-     * - USD/JPY: Derived from Binance live BTCJPY / BTCUSDT klines (which have 100% up-to-the-second candles for every 5m, 15m, 1h, 4h, 1d bar!) anchored to live USD/JPY spot.
-     * - GBP/JPY: Derived from GBP/USD * USD/JPY at the EXACT SAME Unix timestamp!
-     * - USD/CAD: Aligned onto the exact current Unix timestamp grid anchored to live Kraken USD/CAD spot!
-     */
-    async function loadAllCandles() {
-      await fetchLiveKrakenSpot();
-      const tfs = ["1d", "4h", "1h", "15m", "5m"];
-      PAIRS.forEach(p => { marketData[p] = {}; });
+    async function fetchLiveSpotRates() {
+      try {
+        const res = await fetch("https://open.er-api.com/v6/latest/USD");
+        const j = await res.json();
+        if (j && j.rates) {
+          livePrices["USD/JPY"] = j.rates.JPY;
+          livePrices["USD/CAD"] = j.rates.CAD;
+        }
+      } catch (e) {}
 
-      await Promise.all(tfs.map(async tf => {
+      try {
+        const krRes = await fetch("https://api.kraken.com/0/public/Ticker?pair=USDJPY,USDCAD");
+        const krJson = await krRes.json();
+        if (krJson && krJson.result) {
+          Object.keys(krJson.result).forEach(k => {
+            if (k.includes("JPY")) livePrices["USD/JPY"] = parseFloat(krJson.result[k].c[0]);
+            if (k.includes("CAD")) livePrices["USD/CAD"] = parseFloat(krJson.result[k].c[0]);
+          });
+        }
+      } catch (e) {}
+    }
+
+    async function loadAllCandles() {
+      await fetchLiveSpotRates();
+      const tfs = ["1d", "4h", "1h", "15m", "5m"];
+      PAIRS.forEach(p => { if (!marketData[p]) marketData[p] = {}; });
+
+      for (let t = 0; t < tfs.length; t++) {
+        const tf = tfs[t];
         const [xau, eur, gbp, btcUsdt, btcJpy] = await Promise.all([
-          fetchBinanceKlines("PAXGUSDT", tf, 95),
-          fetchBinanceKlines("EURUSDT", tf, 95),
-          fetchBinanceKlines("GBPUSDT", tf, 95),
-          fetchBinanceKlines("BTCUSDT", tf, 95),
-          fetchBinanceKlines("BTCJPY", tf, 95).catch(() => null)
+          fetchBinanceMirrorKlines("PAXGUSDT", tf, 90),
+          fetchBinanceMirrorKlines("EURUSDT", tf, 90),
+          fetchBinanceMirrorKlines("GBPUSDT", tf, 90),
+          fetchBinanceMirrorKlines("BTCUSDT", tf, 90),
+          fetchBinanceMirrorKlines("BTCJPY", tf, 90).catch(() => null)
         ]);
 
         marketData["XAUUSD"][tf] = xau;
         marketData["EUR/USD"][tf] = eur;
         marketData["GBP/USD"][tf] = gbp;
 
-        // Build 100% real-time timestamp-matched USD/JPY candles
         const ujSpot = livePrices["USD/JPY"] || 153.50;
         let ujSeries = [];
         if (btcJpy && btcJpy.length === btcUsdt.length) {
@@ -494,7 +530,6 @@
         }
         marketData["USD/JPY"][tf] = ujSeries;
 
-        // Build 100% timestamp-matched GBP/JPY candles (GBP/USD[i] * USD/JPY[i] at exact same Unix time!)
         marketData["GBP/JPY"][tf] = gbp.map((g, idx) => {
           const u = ujSeries[idx] || ujSeries[ujSeries.length - 1];
           const o = g.open * u.open;
@@ -504,7 +539,6 @@
           return { time: g.time, open: o, high: h, low: l, close: c };
         });
 
-        // Build 100% timestamp-matched USD/CAD candles anchored to live Kraken USD/CAD spot
         const ucadSpot = livePrices["USD/CAD"] || 1.3900;
         const lastEurC = eur[eur.length - 1].close;
         const cadFactor = ucadSpot * Math.pow(lastEurC, 0.65);
@@ -515,21 +549,17 @@
           const l = Math.min(cadFactor / Math.pow(c.high, 0.65), o, cl);
           return { time: c.time, open: o, high: h, low: l, close: cl };
         });
-      }));
+      }
 
       PAIRS.forEach(p => {
         const c5 = marketData[p]["5m"];
-        livePrices[p] = c5[c5.length - 1].close;
-        setups[p] = detectMarcoSuperModel(p);
+        if (c5 && c5.length > 0) {
+          livePrices[p] = c5[c5.length - 1].close;
+          setups[p] = detectMarcoSuperModel(p);
+        }
       });
     }
 
-    /**
-     * MARCO 24-VIDEO SUPER MODEL DETECTOR (v8.0/v9.0 Proven Core + Strict Recent LB Filter)
-     * - Direction & Final TP2: 1D (PDH/PDL) & 4H Engineered Liquidity
-     * - Liquidity Block (Blue Box): 1H or 15m unmitigated candle that swept a left-side swing
-     * - Entry Plan: 15m or 5m Induced Liquidity Line right in front of the LB
-     */
     function detectMarcoSuperModel(pair) {
       const c1d = marketData[pair]["1d"];
       const c4h = marketData[pair]["4h"];
@@ -541,7 +571,6 @@
       const dec = getDec(pair);
       const buf = getBuf(pair);
 
-      // 1D Framing
       const today1D = c1d[c1d.length - 1];
       const yest1D = c1d[c1d.length - 2];
       const pdh = yest1D.high;
@@ -559,18 +588,19 @@
 
       let bestSetup = null;
 
-      for (const dir of dirsToScan) {
+      for (let dIdx = 0; dIdx < dirsToScan.length; dIdx++) {
+        const dir = dirsToScan[dIdx];
         const combinations = [
           { lbTF: "1H", lbKey: "1h", lbArr: c1h, enTF: "15m", enKey: "15m", enArr: c15m },
           { lbTF: "15m", lbKey: "15m", lbArr: c15m, enTF: "5m", enKey: "5m", enArr: c5m }
         ];
 
-        for (const combo of combinations) {
+        for (let cIdx = 0; cIdx < combinations.length; cIdx++) {
+          const combo = combinations[cIdx];
           const arr = combo.lbArr;
           const n = arr.length;
 
-          // Scan recent 36 candles (strictly recent setups!)
-          for (let i = n - 3; i >= Math.max(12, n - 38); i--) {
+          for (let i = n - 3; i >= Math.max(12, n - 40); i--) {
             const lbC = arr[i];
 
             if (dir === "SELL") {
@@ -586,7 +616,6 @@
 
               const lbExtreme = lbC.high;
 
-              // Must be 100% Unmitigated after index i
               let broken = false;
               for (let k = i + 1; k < n; k++) {
                 if (arr[k].high > lbExtreme) { broken = true; break; }
@@ -649,7 +678,8 @@
               let tp2HitTimeSec = null;
 
               const postIndCandles = combo.enArr.filter(c => c.time > inducedTime);
-              for (const pc of postIndCandles) {
+              for (let pIdx = 0; pIdx < postIndCandles.length; pIdx++) {
+                const pc = postIndCandles[pIdx];
                 if (!trigTimeSec) {
                   if (pc.high >= inducedPrice && pc.high <= slBuffered) {
                     trigTimeSec = pc.time;
@@ -666,14 +696,13 @@
 
               bestSetup = {
                 pair, dir: "SELL", status,
-                htfBias: `1D/4H Bearish → Target 4H/1D Pool (${tp2.toFixed(dec)})`,
+                htfBias: "1D/4H Bearish → Target 4H/1D Pool (" + tp2.toFixed(dec) + ")",
                 lbTF: combo.lbTF, lbTimeSec: lbC.time, sweptPrice: leftHigh, sweptTimeSec: leftTime,
                 enTF: combo.enTF, indTimeSec: inducedTime, trigTimeSec, tp1HitTimeSec, tp2HitTimeSec,
                 livePrice, entry: inducedPrice, lbExtreme, slBuffered, tp1, tp2, rr, pdh, pdl, today1D, d1SweepStatus
               };
               break;
             } else {
-              // BUY SETUP SCAN
               let leftLow = Infinity;
               let leftTime = arr[i - 1].time;
               for (let k = Math.max(0, i - 10); k < i; k++) {
@@ -748,7 +777,8 @@
               let tp2HitTimeSec = null;
 
               const postIndCandles = combo.enArr.filter(c => c.time > inducedTime);
-              for (const pc of postIndCandles) {
+              for (let pIdx = 0; pIdx < postIndCandles.length; pIdx++) {
+                const pc = postIndCandles[pIdx];
                 if (!trigTimeSec) {
                   if (pc.low <= inducedPrice && pc.low >= slBuffered) {
                     trigTimeSec = pc.time;
@@ -765,7 +795,7 @@
 
               bestSetup = {
                 pair, dir: "BUY", status,
-                htfBias: `1D/4H Bullish → Target 4H/1D Pool (${tp2.toFixed(dec)})`,
+                htfBias: "1D/4H Bullish → Target 4H/1D Pool (" + tp2.toFixed(dec) + ")",
                 lbTF: combo.lbTF, lbTimeSec: lbC.time, sweptPrice: leftLow, sweptTimeSec: leftTime,
                 enTF: combo.enTF, indTimeSec: inducedTime, trigTimeSec, tp1HitTimeSec, tp2HitTimeSec,
                 livePrice, entry: inducedPrice, lbExtreme, slBuffered, tp1, tp2, rr, pdh, pdl, today1D, d1SweepStatus
@@ -791,7 +821,7 @@
 
         bestSetup = {
           pair, dir: primaryDir, status: "PENDING",
-          htfBias: `1D/4H ${primaryDir} Bias → Target ${tp2.toFixed(dec)}`,
+          htfBias: "1D/4H " + primaryDir + " Bias → Target " + tp2.toFixed(dec),
           lbTF: "1H", lbTimeSec: last1h.time,
           sweptPrice: isBuy ? c1h[c1h.length - 8].low : c1h[c1h.length - 8].high,
           sweptTimeSec: c1h[c1h.length - 8].time,
@@ -803,19 +833,19 @@
 
       const s = bestSetup;
       const outDesc = s.tp2HitTimeSec
-        ? `🎯 Final 4H/1D TP2 Hit at ${fmtDhaka(s.tp2HitTimeSec)}`
+        ? "🎯 Final 4H/1D TP2 Hit at " + fmtDhaka(s.tp2HitTimeSec)
         : s.tp1HitTimeSec
-        ? `🔵 TP1 Hit at ${fmtDhaka(s.tp1HitTimeSec)} (SL Locked at Breakeven)`
+        ? "🔵 TP1 Hit at " + fmtDhaka(s.tp1HitTimeSec) + " (SL Locked at Breakeven)"
         : s.trigTimeSec
-        ? `⚡ Triggered at ${fmtDhaka(s.trigTimeSec)} — Active in Play`
-        : `⏳ Pending Limit (${formatPipDist(pair, s.livePrice, s.entry)} away from Entry)`;
+        ? "⚡ Triggered at " + fmtDhaka(s.trigTimeSec) + " — Active in Play"
+        : "⏳ Pending Limit (" + formatPipDist(pair, s.livePrice, s.entry) + " away from Entry)";
 
       s.outcomeText = outDesc;
       s.story =
-        `1. [1D/4H Direction & Target]: ${s.htfBias}. Yesterday PDH = ${s.pdh.toFixed(dec)}, PDL = ${s.pdl.toFixed(dec)}. ` +
-        `2. [Why Blue Box LB is Valid (${s.lbTF})]: On ${fmtDhaka(s.lbTimeSec)}, the ${s.lbTF} candle swept left-side liquidity at ${s.sweptPrice.toFixed(dec)} (from ${fmtShortDhaka(s.sweptTimeSec)}) and displaced ${s.dir === "SELL" ? "down" : "up"}, leaving a zero-liquidity extreme at ${s.lbExtreme.toFixed(dec)}. ` +
-        `3. [15m/5m Entry Plan]: On ${fmtDhaka(s.indTimeSec)} (${s.enTF} chart), early retail traders were induced at ${s.entry.toFixed(dec)}. Marco's Blue Box spans from ${s.entry.toFixed(dec)} to ${s.lbExtreme.toFixed(dec)}. ` +
-        `4. [Live Status]: ${outDesc}.`;
+        "1. [1D/4H Direction & Target]: " + s.htfBias + ". Yesterday PDH = " + s.pdh.toFixed(dec) + ", PDL = " + s.pdl.toFixed(dec) + ". " +
+        "2. [Why Blue Box LB is Valid (" + s.lbTF + ")]: On " + fmtDhaka(s.lbTimeSec) + ", the " + s.lbTF + " candle swept left-side liquidity at " + s.sweptPrice.toFixed(dec) + " (from " + fmtShortDhaka(s.sweptTimeSec) + ") and displaced " + (s.dir === "SELL" ? "down" : "up") + ", leaving a zero-liquidity extreme at " + s.lbExtreme.toFixed(dec) + ". " +
+        "3. [15m/5m Entry Plan]: On " + fmtDhaka(s.indTimeSec) + " (" + s.enTF + " chart), early retail traders were induced at " + s.entry.toFixed(dec) + ". Marco's Blue Box spans from " + s.entry.toFixed(dec) + " to " + s.lbExtreme.toFixed(dec) + ". " +
+        "4. [Live Status]: " + outDesc + ".";
 
       return s;
     }
@@ -825,16 +855,16 @@
       if (!s || !s.today1D) return;
       const dec = getDec(selectedPair);
 
-      document.getElementById("d1-pair-title").textContent = `${selectedPair} — 1D (One Day) Daily Reader`;
-      document.getElementById("d1-candle-date").textContent = `Today's 1D Candle: ${fmtShortDhaka(s.today1D.time)}`;
+      document.getElementById("d1-pair-title").textContent = selectedPair + " — 1D (One Day) Daily Reader";
+      document.getElementById("d1-candle-date").textContent = "Today's 1D Candle: " + fmtShortDhaka(s.today1D.time);
       document.getElementById("d1-pdh").textContent = s.pdh.toFixed(dec);
       document.getElementById("d1-pdl").textContent = s.pdl.toFixed(dec);
       document.getElementById("d1-open").textContent = s.today1D.open.toFixed(dec);
-      document.getElementById("d1-hl").textContent = `${s.today1D.high.toFixed(dec)} / ${s.today1D.low.toFixed(dec)}`;
+      document.getElementById("d1-hl").textContent = s.today1D.high.toFixed(dec) + " / " + s.today1D.low.toFixed(dec);
       document.getElementById("d1-sweep").textContent = s.d1SweepStatus;
 
       const bEl = document.getElementById("d1-bias");
-      bEl.textContent = `${s.dir} ONLY`;
+      bEl.textContent = s.dir + " ONLY";
       bEl.className = s.dir === "BUY"
         ? "font-mono font-extrabold text-emerald-400 text-sm"
         : "font-mono font-extrabold text-rose-400 text-sm";
@@ -865,46 +895,35 @@
         const dirCol = s.dir === "BUY" ? "text-emerald-400" : "text-rose-400";
 
         const card = document.createElement("div");
-        card.className = `card pair-card p-3.5 ${isSel ? "pair-active" : ""}`;
-        card.onclick = () => {
+        card.className = "card pair-card p-3.5 " + (isSel ? "pair-active" : "");
+        card.onclick = function() {
           selectedPair = pair;
           renderDailyBar();
           renderCards();
           renderSelectedDetails();
-          reloadTradingViewWidget();
+          if (viewMode === "TV") reloadTradingViewWidget();
+          else drawMarcoCanvas();
           renderCandleTable();
         };
 
-        card.innerHTML = `
-          <div class="flex justify-between items-center mb-2">
-            <div class="flex items-center gap-2">
-              <span class="font-bold text-base text-white">${pair}</span>
-              <span class="text-xs font-extrabold ${dirCol}">${s.dir}</span>
-              <span class="text-xs font-mono font-bold text-sky-400">${s.livePrice.toFixed(dec)}</span>
-            </div>
-            <span class="text-[10px] font-bold px-2 py-0.5 rounded ${bClass}">${bText}</span>
-          </div>
-
-          <div class="grid grid-cols-3 gap-2 text-xs bg-slate-900/90 p-2 rounded border border-slate-800 mb-2">
-            <div>
-              <span class="text-[10px] text-slate-400 block">Entry (${s.enTF})</span>
-              <span class="font-mono font-bold text-emerald-400">${s.entry.toFixed(dec)}</span>
-            </div>
-            <div>
-              <span class="text-[10px] text-slate-400 block">SL (${s.lbTF} LB)</span>
-              <span class="font-mono font-bold text-rose-400">${s.slBuffered.toFixed(dec)}</span>
-            </div>
-            <div>
-              <span class="text-[10px] text-slate-400 block">4H/1D RR</span>
-              <span class="font-mono font-bold text-white">1 : ${s.rr.toFixed(2)}</span>
-            </div>
-          </div>
-
-          <div class="flex justify-between items-center text-[10px] text-slate-400 font-mono">
-            <span>🟦 LB: ${fmtShortDhaka(s.lbTimeSec)} (${s.lbTF})</span>
-            <span class="text-emerald-300">${s.trigTimeSec ? "⚡ " + fmtShortDhaka(s.trigTimeSec) : "⏳ " + formatPipDist(pair, s.livePrice, s.entry)}</span>
-          </div>
-        `;
+        card.innerHTML =
+          '<div class="flex justify-between items-center mb-2">' +
+            '<div class="flex items-center gap-2">' +
+              '<span class="font-bold text-base text-white">' + pair + '</span>' +
+              '<span class="text-xs font-extrabold ' + dirCol + '">' + s.dir + '</span>' +
+              '<span class="text-xs font-mono font-bold text-sky-400">' + s.livePrice.toFixed(dec) + '</span>' +
+            '</div>' +
+            '<span class="text-[10px] font-bold px-2 py-0.5 rounded ' + bClass + '">' + bText + '</span>' +
+          '</div>' +
+          '<div class="grid grid-cols-3 gap-2 text-xs bg-slate-900/90 p-2 rounded border border-slate-800 mb-2">' +
+            '<div><span class="text-[10px] text-slate-400 block">Entry (' + s.enTF + ')</span><span class="font-mono font-bold text-emerald-400">' + s.entry.toFixed(dec) + '</span></div>' +
+            '<div><span class="text-[10px] text-slate-400 block">SL (' + s.lbTF + ' LB)</span><span class="font-mono font-bold text-rose-400">' + s.slBuffered.toFixed(dec) + '</span></div>' +
+            '<div><span class="text-[10px] text-slate-400 block">4H/1D RR</span><span class="font-mono font-bold text-white">1 : ' + s.rr.toFixed(2) + '</span></div>' +
+          '</div>' +
+          '<div class="flex justify-between items-center text-[10px] text-slate-400 font-mono">' +
+            '<span>🟦 LB: ' + fmtShortDhaka(s.lbTimeSec) + ' (' + s.lbTF + ')</span>' +
+            '<span class="text-emerald-300">' + (s.trigTimeSec ? "⚡ " + fmtShortDhaka(s.trigTimeSec) : "⏳ " + formatPipDist(pair, s.livePrice, s.entry)) + '</span>' +
+          '</div>';
         grid.appendChild(card);
       });
     }
@@ -914,7 +933,7 @@
       if (!s) return;
       const dec = getDec(selectedPair);
 
-      document.getElementById("st-title").textContent = `${selectedPair} — ${s.dir} (${s.lbTF} LB → ${s.enTF} Entry)`;
+      document.getElementById("st-title").textContent = selectedPair + " — " + s.dir + " (" + s.lbTF + " LB → " + s.enTF + " Entry)";
       document.getElementById("st-price").textContent = s.livePrice.toFixed(dec);
       document.getElementById("st-sub").textContent = s.outcomeText;
 
@@ -935,48 +954,47 @@
       }
 
       document.getElementById("log-bias").textContent = s.htfBias;
-      document.getElementById("log-lbtf").textContent = `${s.lbTF} Fresh Liquidity Block`;
+      document.getElementById("log-lbtf").textContent = s.lbTF + " Fresh Liquidity Block";
       document.getElementById("log-lbtime").textContent = fmtDhaka(s.lbTimeSec);
-      document.getElementById("log-swept").textContent = `${s.sweptPrice.toFixed(dec)} (${fmtShortDhaka(s.sweptTimeSec)})`;
-      document.getElementById("log-indtime").textContent = `${fmtDhaka(s.indTimeSec)} (${s.enTF})`;
+      document.getElementById("log-swept").textContent = s.sweptPrice.toFixed(dec) + " (" + fmtShortDhaka(s.sweptTimeSec) + ")";
+      document.getElementById("log-indtime").textContent = fmtDhaka(s.indTimeSec) + " (" + s.enTF + ")";
       document.getElementById("log-trigtime").textContent = s.trigTimeSec
-        ? `⚡ ${fmtDhaka(s.trigTimeSec)} (${s.enTF})`
-        : `⏳ Pending Limit (${formatPipDist(selectedPair, s.livePrice, s.entry)} away)`;
+        ? "⚡ " + fmtDhaka(s.trigTimeSec) + " (" + s.enTF + ")"
+        : "⏳ Pending Limit (" + formatPipDist(selectedPair, s.livePrice, s.entry) + " away)";
       document.getElementById("log-outcometime").textContent = s.outcomeText;
 
-      document.getElementById("st-rr").textContent = `RR 1 : ${s.rr.toFixed(2)}`;
-      document.getElementById("bb-tf-label").textContent = `${s.lbTF} LB + ${s.enTF} Entry`;
-      document.getElementById("lvl-entry").textContent = `${s.entry.toFixed(dec)} [${s.enTF}]`;
-      document.getElementById("lvl-lbext").textContent = `${s.lbExtreme.toFixed(dec)} [${s.lbTF}]`;
-      document.getElementById("lvl-sl").textContent = `${s.slBuffered.toFixed(dec)}`;
-      document.getElementById("lvl-tp1").textContent = `${s.tp1.toFixed(dec)} [15m/1H]`;
-      document.getElementById("lvl-tp2").textContent = `${s.tp2.toFixed(dec)} [4H/1D]`;
+      document.getElementById("st-rr").textContent = "RR 1 : " + s.rr.toFixed(2);
+      document.getElementById("bb-tf-label").textContent = s.lbTF + " LB + " + s.enTF + " Entry";
+      document.getElementById("lvl-entry").textContent = s.entry.toFixed(dec) + " [" + s.enTF + "]";
+      document.getElementById("lvl-lbext").textContent = s.lbExtreme.toFixed(dec) + " [" + s.lbTF + "]";
+      document.getElementById("lvl-sl").textContent = s.slBuffered.toFixed(dec);
+      document.getElementById("lvl-tp1").textContent = s.tp1.toFixed(dec) + " [15m/1H]";
+      document.getElementById("lvl-tp2").textContent = s.tp2.toFixed(dec) + " [4H/1D]";
 
-      // Update Visual Guide Bar above the Live TradingView Chart
-      document.getElementById("guide-bluebox").textContent = `${s.entry.toFixed(dec)} → ${s.lbExtreme.toFixed(dec)} (${s.lbTF})`;
-      document.getElementById("guide-lbtime").textContent = `Formed: ${fmtShortDhaka(s.lbTimeSec)} Dhaka`;
-      document.getElementById("guide-sl").textContent = `${s.slBuffered.toFixed(dec)}`;
-      document.getElementById("guide-tp").textContent = `${s.tp2.toFixed(dec)} (RR 1:${s.rr.toFixed(2)})`;
-      document.getElementById("guide-tp1").textContent = `TP1 (BE): ${s.tp1.toFixed(dec)}`;
+      document.getElementById("guide-bluebox").textContent = s.entry.toFixed(dec) + " → " + s.lbExtreme.toFixed(dec) + " (" + s.lbTF + ")";
+      document.getElementById("guide-lbtime").textContent = "Formed: " + fmtShortDhaka(s.lbTimeSec) + " Dhaka";
+      document.getElementById("guide-sl").textContent = s.slBuffered.toFixed(dec);
+      document.getElementById("guide-tp").textContent = s.tp2.toFixed(dec) + " (RR 1:" + s.rr.toFixed(2) + ")";
+      document.getElementById("guide-tp1").textContent = "TP1 (BE): " + s.tp1.toFixed(dec);
 
       document.getElementById("st-story").textContent = s.story;
 
       document.getElementById("mt5-ticket").textContent =
-`PAIR: ${selectedPair} | DIRECTION: ${s.dir} (${s.status})
-LIVE MARKET PRICE:      ${s.livePrice.toFixed(dec)}
-1D DAILY PDH / PDL:     PDH ${s.pdh.toFixed(dec)} | PDL ${s.pdl.toFixed(dec)}
-1D / 4H DIRECTION:      ${s.htfBias}
-LB FORMED DATE & TIME:  ${fmtDhaka(s.lbTimeSec)} [${s.lbTF}]
-INDUCED LEVEL FORMED:   ${fmtDhaka(s.indTimeSec)} [${s.enTF}]
-ENTRY TRIGGER TIME:     ${s.trigTimeSec ? fmtDhaka(s.trigTimeSec) : "Pending Limit (Not Triggered Yet)"}
-OUTCOME LOG:            ${s.outcomeText}
---------------------------------------------------------
-🟦 BLUE BOX ENTRY:      ${s.entry.toFixed(dec)} (${s.enTF} Sweep)
-🟦 BLUE BOX LB EXTREME: ${s.lbExtreme.toFixed(dec)} (${s.lbTF} Edge)
-🔴 MT5 STOP LOSS (+Buf):${s.slBuffered.toFixed(dec)}
-🔵 TP1 (BE + 25% Off):  ${s.tp1.toFixed(dec)}
-🟥 TP2 (4H/1D Target):  ${s.tp2.toFixed(dec)}
-FINAL RISK : REWARD:    1 : ${s.rr.toFixed(2)}`;
+        "PAIR: " + selectedPair + " | DIRECTION: " + s.dir + " (" + s.status + ")\n" +
+        "LIVE MARKET PRICE:      " + s.livePrice.toFixed(dec) + "\n" +
+        "1D DAILY PDH / PDL:     PDH " + s.pdh.toFixed(dec) + " | PDL " + s.pdl.toFixed(dec) + "\n" +
+        "1D / 4H DIRECTION:      " + s.htfBias + "\n" +
+        "LB FORMED DATE & TIME:  " + fmtDhaka(s.lbTimeSec) + " [" + s.lbTF + "]\n" +
+        "INDUCED LEVEL FORMED:   " + fmtDhaka(s.indTimeSec) + " [" + s.enTF + "]\n" +
+        "ENTRY TRIGGER TIME:     " + (s.trigTimeSec ? fmtDhaka(s.trigTimeSec) : "Pending Limit (Not Triggered Yet)") + "\n" +
+        "OUTCOME LOG:            " + s.outcomeText + "\n" +
+        "--------------------------------------------------------\n" +
+        "🟦 BLUE BOX ENTRY:      " + s.entry.toFixed(dec) + " (" + s.enTF + " Sweep)\n" +
+        "🟦 BLUE BOX LB EXTREME: " + s.lbExtreme.toFixed(dec) + " (" + s.lbTF + " Edge)\n" +
+        "🔴 MT5 STOP LOSS (+Buf):" + s.slBuffered.toFixed(dec) + "\n" +
+        "🔵 TP1 (BE + 25% Off):  " + s.tp1.toFixed(dec) + "\n" +
+        "🟥 TP2 (4H/1D Target):  " + s.tp2.toFixed(dec) + "\n" +
+        "FINAL RISK : REWARD:    1 : " + s.rr.toFixed(2);
     }
 
     function reloadTradingViewWidget() {
@@ -989,7 +1007,119 @@ FINAL RISK : REWARD:    1 : ${s.rr.toFixed(2)}`;
       const interval = intMap[activeTF] || "15";
 
       document.getElementById("tv-live-container").innerHTML =
-        `<iframe src="https://s.tradingview.com/widgetembed/?frameElementId=tv_live&symbol=${encodeURIComponent(sym)}&interval=${interval}&hidesidetoolbar=0&symboledit=1&saveimage=1&toolbarbg=0b1120&studies=%5B%5D&theme=dark&style=1&timezone=Asia%2FDhaka" style="width:100%;height:100%;border:0;" allowfullscreen></iframe>`;
+        '<iframe src="https://s.tradingview.com/widgetembed/?frameElementId=tv_live&symbol=' + encodeURIComponent(sym) + '&interval=' + interval + '&hidesidetoolbar=0&symboledit=1&saveimage=1&toolbarbg=0b1120&studies=%5B%5D&theme=dark&style=1&timezone=Asia%2FDhaka" style="width:100%;height:100%;border:0;" allowfullscreen></iframe>';
+    }
+
+    function switchViewMode(m) {
+      viewMode = m;
+      const tvEl = document.getElementById("tv-live-container");
+      const drEl = document.getElementById("drawn-canvas-container");
+
+      document.getElementById("vmode-TV").className = m === "TV"
+        ? "text-xs px-2.5 py-1 rounded font-bold bg-emerald-600 text-white"
+        : "text-xs px-2.5 py-1 rounded font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700";
+      document.getElementById("vmode-DRAWN").className = m === "DRAWN"
+        ? "text-xs px-2.5 py-1 rounded font-bold bg-blue-600 text-white"
+        : "text-xs px-2.5 py-1 rounded font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700";
+
+      if (m === "TV") {
+        tvEl.classList.remove("hidden");
+        drEl.classList.add("hidden");
+        reloadTradingViewWidget();
+      } else {
+        tvEl.classList.add("hidden");
+        drEl.classList.remove("hidden");
+        drawMarcoCanvas();
+      }
+    }
+
+    function drawMarcoCanvas() {
+      const canvas = document.getElementById("marco-canvas");
+      const wrap = document.getElementById("drawn-canvas-container");
+      if (!canvas || !marketData[selectedPair] || !marketData[selectedPair][activeTF]) return;
+
+      const dpr = window.devicePixelRatio || 1;
+      const width = wrap.clientWidth || 720;
+      const height = wrap.clientHeight || 490;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+
+      const ctx = canvas.getContext("2d");
+      ctx.scale(dpr, dpr);
+
+      ctx.fillStyle = "#050811";
+      ctx.fillRect(0, 0, width, height);
+
+      const s = setups[selectedPair];
+      const candles = marketData[selectedPair][activeTF].slice(-60);
+      if (!s || candles.length === 0) return;
+
+      const dec = getDec(selectedPair);
+      const padL = 14, padR = 92, padT = 26, padB = 26;
+      const plotW = width - padL - padR;
+      const plotH = height - padT - padB;
+
+      let minP = Infinity, maxP = -Infinity;
+      candles.forEach(c => {
+        if (c.low < minP) minP = c.low;
+        if (c.high > maxP) maxP = c.high;
+      });
+      [s.entry, s.lbExtreme, s.slBuffered, s.tp1, s.tp2].forEach(v => {
+        if (v < minP) minP = v;
+        if (v > maxP) maxP = v;
+      });
+      const rP = (maxP - minP) || 1;
+      minP -= rP * 0.06;
+      maxP += rP * 0.06;
+
+      const yOf = p => padT + ((maxP - p) / (maxP - minP)) * plotH;
+      const stepX = plotW / candles.length;
+      const xOf = idx => padL + (idx + 0.5) * stepX;
+
+      let lbIdx = 0, minD = Infinity;
+      candles.forEach((c, idx) => {
+        const d = Math.abs(c.time - s.lbTimeSec);
+        if (d < minD) { minD = d; lbIdx = idx; }
+      });
+
+      const bbX = Math.max(padL, xOf(lbIdx) - stepX * 0.4);
+      const endX = width - padR;
+      const yEn = yOf(s.entry);
+      const yEx = yOf(s.lbExtreme);
+      const topY = Math.min(yEn, yEx);
+      const boxH = Math.max(6, Math.abs(yEx - yEn));
+
+      ctx.fillStyle = "rgba(37, 99, 235, 0.25)";
+      ctx.fillRect(bbX, topY, endX - bbX, boxH);
+      ctx.strokeStyle = "#3b82f6";
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(bbX, topY, endX - bbX, boxH);
+
+      ctx.fillStyle = "#93c5fd";
+      ctx.font = "bold 11px sans-serif";
+      ctx.fillText("🟦 BLUE BOX LB (" + fmtShortDhaka(s.lbTimeSec) + ")", bbX + 6, topY - 6 > 14 ? topY - 6 : topY + 14);
+
+      const yTP2 = yOf(s.tp2);
+      ctx.fillStyle = "rgba(244, 63, 94, 0.22)";
+      ctx.fillRect(padL, yTP2 - 7, endX - padL, 14);
+      ctx.strokeStyle = "#f43f5e";
+      ctx.strokeRect(padL, yTP2 - 7, endX - padL, 14);
+
+      const bodyW = Math.max(2.5, stepX * 0.62);
+      candles.forEach((c, idx) => {
+        const cx = xOf(idx);
+        const isBull = c.close >= c.open;
+        ctx.strokeStyle = isBull ? "#10b981" : "#f43f5e";
+        ctx.beginPath();
+        ctx.moveTo(cx, yOf(c.high));
+        ctx.lineTo(cx, yOf(c.low));
+        ctx.stroke();
+
+        ctx.fillStyle = isBull ? "#10b981" : "#f43f5e";
+        const bTop = Math.min(yOf(c.open), yOf(c.close));
+        const bH = Math.max(2, Math.abs(yOf(c.close) - yOf(c.open)));
+        ctx.fillRect(cx - bodyW / 2, bTop, bodyW, bH);
+      });
     }
 
     function setChartTF(tf) {
@@ -997,10 +1127,11 @@ FINAL RISK : REWARD:    1 : ${s.rr.toFixed(2)}`;
       ["5m", "15m", "1h", "4h", "1d"].forEach(k => {
         const btn = document.getElementById("tfbtn-" + k);
         btn.className = k === tf
-          ? "text-xs px-2.5 py-1 rounded font-mono bg-emerald-600 text-white font-bold"
-          : "text-xs px-2.5 py-1 rounded font-mono bg-slate-800 text-slate-300 hover:bg-slate-700";
+          ? "text-xs px-2 py-0.5 rounded font-mono bg-emerald-600 text-white font-bold"
+          : "text-xs px-2 py-0.5 rounded font-mono bg-slate-800 text-slate-300 hover:bg-slate-700";
       });
-      reloadTradingViewWidget();
+      if (viewMode === "TV") reloadTradingViewWidget();
+      else drawMarcoCanvas();
       renderCandleTable();
     }
 
@@ -1026,14 +1157,13 @@ FINAL RISK : REWARD:    1 : ${s.rr.toFixed(2)}`;
 
         const tr = document.createElement("tr");
         tr.className = ev ? "bg-blue-950/40 text-emerald-300 font-bold" : "";
-        tr.innerHTML = `
-          <td class="py-1">${fmtDhaka(c.time)}</td>
-          <td>${c.open.toFixed(dec)}</td>
-          <td class="text-emerald-400">${c.high.toFixed(dec)}</td>
-          <td class="text-rose-400">${c.low.toFixed(dec)}</td>
-          <td class="font-bold">${c.close.toFixed(dec)}</td>
-          <td class="text-amber-300">${ev}</td>
-        `;
+        tr.innerHTML =
+          '<td class="py-1">' + fmtDhaka(c.time) + '</td>' +
+          '<td>' + c.open.toFixed(dec) + '</td>' +
+          '<td class="text-emerald-400">' + c.high.toFixed(dec) + '</td>' +
+          '<td class="text-rose-400">' + c.low.toFixed(dec) + '</td>' +
+          '<td class="font-bold">' + c.close.toFixed(dec) + '</td>' +
+          '<td class="text-amber-300">' + ev + '</td>';
         tbody.appendChild(tr);
       });
     }
@@ -1052,14 +1182,14 @@ FINAL RISK : REWARD:    1 : ${s.rr.toFixed(2)}`;
       navigator.clipboard.writeText(document.getElementById("mt5-ticket").textContent);
       const btn = document.getElementById("copy-btn");
       btn.textContent = "Copied!";
-      setTimeout(() => (btn.textContent = "Copy Plan"), 1500);
+      setTimeout(function() { btn.textContent = "Copy Plan"; }, 1500);
     }
 
     async function runFullMarketScan() {
       const btn = document.getElementById("scan-btn");
       const statusTxt = document.getElementById("feed-status-text");
       btn.textContent = "⏳ Scanning...";
-      statusTxt.textContent = "⏳ Syncing Live Candles...";
+      statusTxt.textContent = "⏳ Syncing Live Market Candles...";
       btn.disabled = true;
 
       try {
@@ -1070,6 +1200,7 @@ FINAL RISK : REWARD:    1 : ${s.rr.toFixed(2)}`;
         renderCards();
         renderSelectedDetails();
         renderCandleTable();
+        if (viewMode === "DRAWN") drawMarcoCanvas();
       } catch (e) {
         statusTxt.textContent = "⚠️ Feed Warning: " + e.message;
       } finally {
@@ -1078,10 +1209,10 @@ FINAL RISK : REWARD:    1 : ${s.rr.toFixed(2)}`;
       }
     }
 
-    // 1-Second Live Price Ticker
     async function tickLivePrices() {
       try {
-        const res = await fetch("https://api.binance.com/api/v3/ticker/price");
+        const res = await fetch("https://data-api.binance.vision/api/v3/ticker/price");
+        if (!res.ok) return;
         const all = await res.json();
         const map = new Map(all.map(x => [x.symbol, parseFloat(x.price)]));
 
@@ -1117,10 +1248,10 @@ FINAL RISK : REWARD:    1 : ${s.rr.toFixed(2)}`;
     function updateClock() {
       const now = new Date();
       const dhakaStr = now.toLocaleTimeString("en-GB", { timeZone: "Asia/Dhaka", hour12: false });
-      document.getElementById("dhaka-clock").textContent = `Dhaka: ${dhakaStr} (GMT+6)`;
+      document.getElementById("dhaka-clock").textContent = "Dhaka: " + dhakaStr + " (GMT+6)";
     }
 
-    (async () => {
+    (async function init() {
       updateClock();
       setInterval(updateClock, 1000);
       reloadTradingViewWidget();
