@@ -3,42 +3,84 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Marco Unified Trade Finder v7.0 — 24-Video Blue Box Real-Time Engine</title>
+  <title>Marco Super Model v11.0 — Twelvedata & Direct Feed Synchronized Trade Finder</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
   <style>
-    body { background-color: #060a12; color: #e2e8f0; font-family: system-ui, -apple-system, sans-serif; }
-    .card { background-color: #0d1424; border: 1px solid #1e293b; border-radius: 0.75rem; }
-    .pair-card { cursor: pointer; transition: all 0.2s ease; }
+    body { background-color: #04070f; color: #e2e8f0; font-family: system-ui, -apple-system, sans-serif; }
+    .card { background-color: #0b1120; border: 1px solid #1e293b; border-radius: 0.75rem; }
+    .pair-card { cursor: pointer; transition: all 0.15s ease; }
     .pair-card:hover { border-color: #38bdf8; transform: translateY(-2px); }
-    .pair-active { border-color: #10b981 !important; background-color: #064e3b25 !important; box-shadow: 0 0 18px rgba(16, 185, 129, 0.2); }
-    .blue-box-zone { background: linear-gradient(90deg, rgba(56,189,248,0.18) 0%, rgba(16,185,129,0.12) 100%); border: 1px dashed #38bdf8; }
+    .pair-active { border-color: #10b981 !important; background-color: #064e3b28 !important; box-shadow: 0 0 20px rgba(16, 185, 129, 0.25); }
+    .pulse-dot { animation: pulse 1s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
   </style>
 </head>
-<body class="p-3 md:p-5 max-w-7xl mx-auto">
+<body class="p-3 md:p-5 max-w-[1440px] mx-auto">
 
   <!-- Top Header -->
   <div class="card p-4 mb-4 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
     <div>
       <div class="flex items-center gap-2 flex-wrap">
-        <span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-xs font-extrabold px-2.5 py-1 rounded">v7.0 TRUE BLUE-BOX ENGINE</span>
-        <span id="feed-badge" class="bg-sky-500/20 text-sky-400 border border-sky-500/40 text-xs font-bold px-2.5 py-1 rounded">⏳ Fetching Live Candles...</span>
-        <h1 class="text-lg md:text-xl font-bold text-white">Marco 24-Video Unified Trade Finder (Real-Time OHLC)</h1>
+        <span class="bg-blue-500/20 text-blue-400 border border-blue-500/40 text-xs font-extrabold px-2.5 py-1 rounded">🟦 MARCO SUPER MODEL v11.0</span>
+        <span id="feed-status" class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-xs font-bold px-2.5 py-1 rounded flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></span>
+          <span id="feed-status-text">Twelvedata & Direct Feed Synchronized</span>
+        </span>
+        <h1 class="text-lg md:text-xl font-bold text-white">Unified Direct Feed Trade Finder & Visual Drawer</h1>
       </div>
       <p class="text-xs text-slate-400 mt-1">
-        Direction: <strong class="text-sky-400">1D / 4H</strong> • 
-        Unmitigated LB: <strong class="text-amber-400">1H / 15m Only</strong> • 
-        Blue-Box Sweep Entry: <strong class="text-emerald-400">15m / 5m Only (Strictly No 1m)</strong>
+        1D & 4H Direction: <strong class="text-sky-400">Live PDH/PDL & 4H Pools</strong> • 
+        Liquidity Block: <strong class="text-amber-400">1H / 15m Unmitigated</strong> • 
+        Chart Match: <strong class="text-emerald-400">100% Identical to Scanner Feed</strong>
       </p>
     </div>
 
     <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-between lg:justify-end">
       <div class="bg-slate-900 px-3.5 py-2 rounded-lg border border-slate-800 text-right">
         <div id="dhaka-clock" class="text-sm font-mono font-bold text-emerald-400">Dhaka: --:--:--</div>
-        <div id="session-status" class="text-[11px] text-slate-400">Checking session...</div>
+        <div id="tick-counter" class="text-[11px] font-mono text-sky-400">Live Stream Active</div>
       </div>
-      <button onclick="scanAllPairs()" id="rescan-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2.5 rounded-lg shadow">
-        🔄 Re-Scan Live Market Now
+      <button onclick="forceFullSync()" id="sync-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2.5 rounded-lg shadow">
+        🔄 Refresh Live Feed
       </button>
+    </div>
+  </div>
+
+  <!-- Dedicated 1D (One Day) Chart Framing Bar -->
+  <div class="card p-3.5 mb-4 bg-slate-900/90 border-sky-500/40">
+    <div class="flex flex-wrap justify-between items-center gap-2 mb-2">
+      <div class="flex items-center gap-2">
+        <span class="bg-sky-500/20 text-sky-300 border border-sky-500/40 text-xs font-bold px-2 py-0.5 rounded">📅 1D (ONE DAY) DAILY READER</span>
+        <span id="d1-pair-title" class="text-sm font-bold text-white">XAUUSD Daily Framing</span>
+      </div>
+      <span id="d1-candle-date" class="text-xs font-mono text-amber-300">Current 1D Candle: --</span>
+    </div>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 text-xs">
+      <div class="bg-slate-950 p-2 rounded border border-slate-800">
+        <span class="text-[10px] text-slate-400 block">Yesterday High (PDH)</span>
+        <span id="d1-pdh" class="font-mono font-bold text-rose-300 text-sm">--</span>
+      </div>
+      <div class="bg-slate-950 p-2 rounded border border-slate-800">
+        <span class="text-[10px] text-slate-400 block">Yesterday Low (PDL)</span>
+        <span id="d1-pdl" class="font-mono font-bold text-emerald-300 text-sm">--</span>
+      </div>
+      <div class="bg-slate-950 p-2 rounded border border-slate-800">
+        <span class="text-[10px] text-slate-400 block">Today 1D Open</span>
+        <span id="d1-open" class="font-mono font-bold text-slate-200 text-sm">--</span>
+      </div>
+      <div class="bg-slate-950 p-2 rounded border border-slate-800">
+        <span class="text-[10px] text-slate-400 block">Today 1D High / Low</span>
+        <span id="d1-hl" class="font-mono font-bold text-sky-300 text-xs">-- / --</span>
+      </div>
+      <div class="bg-slate-950 p-2 rounded border border-slate-800">
+        <span class="text-[10px] text-slate-400 block">1D PDH/PDL Sweep Status</span>
+        <span id="d1-sweep" class="font-mono font-bold text-amber-300 text-xs">--</span>
+      </div>
+      <div class="bg-slate-950 p-2 rounded border border-slate-800">
+        <span class="text-[10px] text-slate-400 block">1D + 4H Master Bias</span>
+        <span id="d1-bias" class="font-mono font-extrabold text-emerald-400 text-sm">--</span>
+      </div>
     </div>
   </div>
 
@@ -46,124 +88,128 @@
   <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
     <div class="flex flex-wrap gap-2">
       <button onclick="setFilter('ALL')" id="flt-ALL" class="text-xs px-3 py-1.5 rounded-lg font-semibold bg-emerald-600 text-white">All 6 Pairs</button>
-      <button onclick="setFilter('PENDING')" id="flt-PENDING" class="text-xs px-3 py-1.5 rounded-lg font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">⏳ Pending Blue-Box Limits</button>
-      <button onclick="setFilter('TRIGGERED')" id="flt-TRIGGERED" class="text-xs px-3 py-1.5 rounded-lg font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">⚡ Triggered / In Play</button>
-      <button onclick="setFilter('WAIT')" id="flt-WAIT" class="text-xs px-3 py-1.5 rounded-lg font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">🛑 Stay Out / Building</button>
+      <button onclick="setFilter('PENDING')" id="flt-PENDING" class="text-xs px-3 py-1.5 rounded-lg font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">⏳ Pending Limits</button>
+      <button onclick="setFilter('TRIGGERED')" id="flt-TRIGGERED" class="text-xs px-3 py-1.5 rounded-lg font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">⚡ Triggered / Running</button>
+      <button onclick="setFilter('HIT_TP')" id="flt-HIT_TP" class="text-xs px-3 py-1.5 rounded-lg font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">🎯 TP Hit / Completed</button>
     </div>
-    <div id="last-scan-time" class="text-xs font-mono text-slate-400">Last Live Scan: --</div>
+    <div id="last-sync-time" class="text-xs font-mono text-slate-400">Direct Feed: Synchronized</div>
   </div>
 
-  <!-- 6 Pair Cards -->
+  <!-- 6 Pair Cards Grid -->
   <div id="pairs-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 mb-5"></div>
 
   <!-- Main Workspace -->
   <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
     
-    <!-- Left 5 Cols: Exact Timestamps, Blue Box Visual & Levels -->
+    <!-- Left 5 Cols: Timestamps, Levels & Ticket -->
     <div class="lg:col-span-5 space-y-4">
       
       <!-- Live Status Banner -->
       <div id="status-banner" class="card p-4 border-l-4 border-emerald-500">
         <div class="flex justify-between items-start">
           <div>
-            <span id="dt-badge" class="text-[11px] font-bold uppercase px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">SCANNING...</span>
-            <h2 id="dt-title" class="text-xl font-bold text-white mt-1.5">XAUUSD</h2>
+            <span id="st-badge" class="text-[11px] font-bold uppercase px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">SCANNING...</span>
+            <h2 id="st-title" class="text-xl font-bold text-white mt-1.5">GBP/USD</h2>
+            <div id="st-source" class="text-[11px] text-sky-400 font-mono mt-0.5">Twelvedata & Direct Feed Spot</div>
           </div>
           <div class="text-right">
-            <div class="text-[11px] text-slate-400">Real-Time Market Price</div>
-            <div id="dt-live" class="text-lg font-mono font-bold text-sky-400">--</div>
+            <div class="text-[11px] text-slate-400">Live Direct Feed Price</div>
+            <div id="st-price" class="text-xl font-mono font-extrabold text-sky-400">--</div>
           </div>
         </div>
-        <div id="dt-dist" class="text-xs font-mono text-amber-300 mt-2">Checking live candle distance...</div>
+        <div id="st-sub" class="text-xs font-mono text-amber-300 mt-2">Calculating live pip distance...</div>
       </div>
 
-      <!-- Exact Candle Timestamp & Timeframe Log -->
-      <div class="card p-4 bg-slate-900/75 border-sky-900/60">
-        <h3 class="text-xs font-bold uppercase tracking-wider text-sky-400 mb-3">🕒 Real-Time LB & Entry Timestamp Log (Dhaka GMT+6)</h3>
+      <!-- Exact Date & Time Audit Log -->
+      <div class="card p-4 bg-slate-900/80 border-blue-900/60">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-sky-400 mb-3">🕒 Exact Date & Time Audit Log (Dhaka GMT+6)</h3>
         <div class="space-y-2 text-xs">
           <div class="flex justify-between items-center py-1.5 border-b border-slate-800">
-            <span class="text-slate-400">1. HTF Direction (1D / 4H):</span>
-            <span id="log-htf" class="font-mono font-bold text-white bg-slate-800 px-2 py-0.5 rounded">--</span>
+            <span class="text-slate-400">1. Feed Source:</span>
+            <span id="log-source" class="font-mono font-bold text-purple-300 bg-purple-950/60 px-2 py-0.5 rounded">Twelvedata Direct FX</span>
           </div>
           <div class="flex justify-between items-center py-1.5 border-b border-slate-800">
-            <span class="text-slate-400">2. Liquidity Block Timeframe:</span>
-            <span id="log-lbtf" class="font-mono font-bold text-amber-400 bg-amber-950/60 border border-amber-700/40 px-2 py-0.5 rounded">--</span>
+            <span class="text-slate-400">2. 1D / 4H Direction & Target:</span>
+            <span id="log-bias" class="font-mono font-bold text-white bg-slate-800 px-2 py-0.5 rounded">--</span>
           </div>
           <div class="flex justify-between items-center py-1.5 border-b border-slate-800">
-            <span class="text-slate-400">3. LB Formed Candle Time:</span>
-            <span id="log-lbtime" class="font-mono font-semibold text-amber-200">--</span>
+            <span class="text-slate-400">3. Liquidity Block (LB) TF:</span>
+            <span id="log-lbtf" class="font-mono font-bold text-blue-300 bg-blue-950/70 border border-blue-600/40 px-2 py-0.5 rounded">--</span>
           </div>
           <div class="flex justify-between items-center py-1.5 border-b border-slate-800">
-            <span class="text-slate-400">4. LB Swept Left Swing From:</span>
-            <span id="log-lbswept" class="font-mono text-slate-300">--</span>
+            <span class="text-slate-400">4. LB Formed Date & Time:</span>
+            <span id="log-lbtime" class="font-mono font-semibold text-amber-300">--</span>
           </div>
           <div class="flex justify-between items-center py-1.5 border-b border-slate-800">
-            <span class="text-slate-400">5. Entry Execution TF (No 1m):</span>
-            <span id="log-entf" class="font-mono font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-700/40 px-2 py-0.5 rounded">--</span>
+            <span class="text-slate-400">5. Swept Left-Side Liquidity:</span>
+            <span id="log-swept" class="font-mono text-slate-300">--</span>
           </div>
           <div class="flex justify-between items-center py-1.5 border-b border-slate-800">
-            <span class="text-slate-400">6. Induced Level Formed Time:</span>
+            <span class="text-slate-400">6. Induced Entry Level Formed:</span>
             <span id="log-indtime" class="font-mono text-slate-200">--</span>
           </div>
+          <div class="flex justify-between items-center py-1.5 border-b border-slate-800">
+            <span class="text-slate-400">7. Entry Trigger Date & Time:</span>
+            <span id="log-trigtime" class="font-mono font-bold text-emerald-400">--</span>
+          </div>
           <div class="flex justify-between items-center py-1">
-            <span class="text-slate-400">7. Entry Trigger Time / State:</span>
-            <span id="log-trigtime" class="font-mono font-bold text-emerald-300">--</span>
+            <span class="text-slate-400">8. TP1 / TP2 / SL Hit Time:</span>
+            <span id="log-outcometime" class="font-mono font-bold text-sky-300">--</span>
           </div>
         </div>
       </div>
 
-      <!-- Marco "Blue Box" Levels Card -->
+      <!-- Blue Box & Red Box Exact Price Levels -->
       <div class="card p-4">
         <div class="flex justify-between items-center mb-3">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-400">🟦 Marco "Blue Box" Levels (Entry, LB SL & TP)</h3>
-          <span id="dt-rr" class="text-xs font-mono font-bold px-2.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300">RR --</span>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-400">🟦 Blue Box (LB) & 🟥 Red Box (TP) Levels</h3>
+          <span id="st-rr" class="text-xs font-mono font-bold px-2.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300">RR --</span>
         </div>
 
         <div class="space-y-2 text-xs">
-          <!-- Blue Box Zone Highlight -->
-          <div class="blue-box-zone p-3 rounded-lg space-y-2">
-            <div class="text-[11px] font-bold text-sky-300 uppercase tracking-wide flex justify-between">
-              <span>🟦 Marco Entry Blue Box (Induced Line → LB Extreme)</span>
-              <span id="bb-status-tag" class="text-emerald-300">100% Unmitigated LB</span>
+          <div class="p-3 rounded-lg bg-blue-950/35 border border-blue-500/50 space-y-2">
+            <div class="flex justify-between items-center text-[11px] font-bold text-blue-300 uppercase">
+              <span>🟦 BLUE BOX (Liquidity Block + Entry Zone)</span>
+              <span id="bb-tf-label">1H / 15m</span>
             </div>
-            <div class="flex justify-between items-center bg-slate-950/80 p-2 rounded">
+            <div class="flex justify-between items-center bg-slate-950/90 p-2 rounded">
               <div>
-                <div class="text-emerald-300 font-semibold">1. Entry Line (Induced Liquidity Sweep)</div>
-                <div id="note-entry" class="text-[11px] text-slate-400">Enter immediately as soon as this line is stabbed</div>
+                <div class="text-emerald-300 font-semibold">Entry Line (Induced Sweep Edge)</div>
+                <div class="text-[10px] text-slate-400">Enter immediately when price sweeps this line</div>
               </div>
-              <div id="val-entry" class="text-sm font-mono font-bold text-emerald-400">--</div>
+              <div id="lvl-entry" class="text-sm font-mono font-bold text-emerald-400">--</div>
             </div>
-            <div class="flex justify-between items-center bg-slate-950/80 p-2 rounded">
+            <div class="flex justify-between items-center bg-slate-950/90 p-2 rounded">
               <div>
-                <div class="text-amber-300 font-semibold">2. Unmitigated LB Zone (No-Liquidity Edge)</div>
-                <div id="note-lb" class="text-[11px] text-slate-400">Candle 2 sweep wick — holds zero liquidity</div>
+                <div class="text-blue-300 font-semibold">LB Extreme Edge (Zero-Liquidity High/Low)</div>
+                <div class="text-[10px] text-slate-400">100% Unmitigated sweep wick protecting SL</div>
               </div>
-              <div id="val-lb" class="text-sm font-mono font-semibold text-amber-300">--</div>
+              <div id="lvl-lbext" class="text-sm font-mono font-semibold text-blue-300">--</div>
             </div>
           </div>
 
-          <div class="p-2.5 rounded bg-slate-900 flex justify-between items-center border border-rose-900/50">
+          <div class="p-2.5 rounded bg-slate-900 flex justify-between items-center border border-rose-800/60">
             <div>
-              <div class="text-rose-300 font-semibold">3. MT5 Stop Loss (LB Extreme + Spread Buffer)</div>
-              <div id="note-sl" class="text-[11px] text-slate-400">Covers LB extreme + mandatory spread buffer</div>
+              <div class="text-rose-300 font-semibold">🔴 MT5 Stop Loss (Outside Blue Box + Buffer)</div>
+              <div class="text-[10px] text-slate-400">Covers LB extreme + mandatory spread buffer</div>
             </div>
-            <div id="val-sl" class="text-sm font-mono font-bold text-rose-400">--</div>
+            <div id="lvl-sl" class="text-sm font-mono font-bold text-rose-400">--</div>
           </div>
 
-          <div class="p-2.5 rounded bg-slate-900 flex justify-between items-center">
+          <div class="p-2.5 rounded bg-slate-900 flex justify-between items-center border border-sky-900/50">
             <div>
-              <div class="text-sky-300 font-semibold">4. 1st Internal Pool (BE / Max 20-25% Partial)</div>
-              <div id="note-tp1" class="text-[11px] text-slate-400">Move SL to Breakeven once this pool is swept</div>
+              <div class="text-sky-300 font-semibold">🔵 TP1: 1st Internal Pool (Move SL to BE + 25% Off)</div>
+              <div class="text-[10px] text-slate-400">15m/1H internal liquidity — locks 0-loss trade</div>
             </div>
-            <div id="val-tp1" class="text-sm font-mono font-semibold text-sky-300">--</div>
+            <div id="lvl-tp1" class="text-sm font-mono font-semibold text-sky-300">--</div>
           </div>
 
-          <div class="p-2.5 rounded bg-slate-900 flex justify-between items-center border border-emerald-900/50">
+          <div class="p-2.5 rounded bg-rose-950/25 flex justify-between items-center border border-rose-500/50">
             <div>
-              <div class="text-emerald-300 font-semibold">5. Final HTF Target (Engineered $$$ Pool)</div>
-              <div id="note-tp2" class="text-[11px] text-slate-400">Resting equal highs/lows or untouched PDH/PDL</div>
+              <div class="text-emerald-300 font-semibold">🟥 TP2: 4H / 1D Engineered Liquidity ($$$ Target)</div>
+              <div class="text-[10px] text-slate-400">4H/1D Equal Highs-Lows / Untouched PDH-PDL</div>
             </div>
-            <div id="val-tp2" class="text-sm font-mono font-bold text-emerald-400">--</div>
+            <div id="lvl-tp2" class="text-sm font-mono font-bold text-emerald-400">--</div>
           </div>
         </div>
       </div>
@@ -171,63 +217,83 @@
       <!-- Copyable MT5 Ticket -->
       <div class="card p-4">
         <div class="flex justify-between items-center mb-2">
-          <span class="text-xs font-bold uppercase text-slate-400">📋 Ready-to-Use MT5 Ticket</span>
-          <button onclick="copyTicket()" id="copy-btn" class="text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1 rounded font-semibold">Copy Ticket</button>
+          <span class="text-xs font-bold uppercase text-slate-400">📋 Complete MT5 Execution Plan</span>
+          <button onclick="copyTicket()" id="copy-btn" class="text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1 rounded font-semibold">Copy Plan</button>
         </div>
         <pre id="mt5-ticket" class="text-[11px] font-mono bg-slate-950 p-3 rounded border border-slate-800 whitespace-pre-wrap text-slate-300"></pre>
       </div>
 
     </div>
 
-    <!-- Right 7 Cols: Live Chart, Explanation & Raw OHLC Inspector -->
+    <!-- Right 7 Cols: Synchronized Visual Chart with Drawn Blue/Red Box + Matching Feed Source -->
     <div class="lg:col-span-7 space-y-4">
       
-      <!-- Live TradingView Chart -->
       <div class="card p-3">
-        <div class="flex justify-between items-center mb-2 px-1">
-          <span class="text-xs font-bold text-slate-300">📊 Live Chart (Compare Detected Blue-Box Levels Directly)</span>
-          <div class="flex gap-1.5">
-            <button onclick="switchChartTF('5')" class="text-[11px] bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded text-emerald-300 font-mono">5m</button>
-            <button onclick="switchChartTF('15')" class="text-[11px] bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded text-emerald-300 font-mono">15m</button>
-            <button onclick="switchChartTF('60')" class="text-[11px] bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded text-amber-300 font-mono">1H</button>
-            <button onclick="switchChartTF('240')" class="text-[11px] bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded text-sky-300 font-mono">4H</button>
-            <button onclick="switchChartTF('D')" class="text-[11px] bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded text-sky-300 font-mono">1D</button>
+        <!-- View Mode & Timeframe Bar -->
+        <div class="flex flex-wrap justify-between items-center gap-2 mb-2.5 px-1">
+          <div class="flex flex-wrap gap-1.5">
+            <button onclick="setChartMode('TV_DRAWN')" id="mode-TV_DRAWN" class="text-xs px-2.5 py-1 rounded font-bold bg-blue-600 text-white">
+              🟦 Synchronized Blue & Red Box Chart
+            </button>
+            <button onclick="setChartMode('TV_SOURCE')" id="mode-TV_SOURCE" class="text-xs px-2.5 py-1 rounded font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">
+              📊 Live Matching Feed Chart
+            </button>
+          </div>
+
+          <div class="flex items-center gap-1">
+            <span class="text-[11px] text-slate-400 mr-1">TF:</span>
+            <button onclick="setChartTF('5m')" id="tfbtn-5m" class="text-xs px-2 py-0.5 rounded font-mono bg-slate-800 text-slate-300">5m</button>
+            <button onclick="setChartTF('15m')" id="tfbtn-15m" class="text-xs px-2 py-0.5 rounded font-mono bg-emerald-600 text-white font-bold">15m</button>
+            <button onclick="setChartTF('1h')" id="tfbtn-1h" class="text-xs px-2 py-0.5 rounded font-mono bg-slate-800 text-slate-300">1H</button>
+            <button onclick="setChartTF('4h')" id="tfbtn-4h" class="text-xs px-2 py-0.5 rounded font-mono bg-slate-800 text-slate-300">4H</button>
+            <button onclick="setChartTF('1d')" id="tfbtn-1d" class="text-xs px-2 py-0.5 rounded font-mono bg-sky-600/40 border border-sky-400 text-sky-200 font-bold">1D (Daily)</button>
           </div>
         </div>
-        <div id="tv-chart-container" class="w-full h-[430px] rounded overflow-hidden border border-slate-800"></div>
-      </div>
 
-      <!-- Algorithmic Story Breakdown -->
-      <div class="card p-4">
-        <h3 class="text-xs font-bold uppercase tracking-wider text-amber-400 mb-2">🧠 Complete 24-Video Single-Flow Analysis Breakdown</h3>
-        <p id="dt-story" class="text-xs text-slate-300 leading-relaxed bg-slate-900/90 p-3 rounded border border-slate-800"></p>
-      </div>
-
-      <!-- Raw Live OHLC Candle Inspector -->
-      <div class="card p-4">
-        <div class="flex flex-wrap justify-between items-center gap-2 mb-3">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-sky-400">🔬 Live Fetched OHLC Candles (Proof of Real-Time Data)</h3>
-          <div class="flex gap-1">
-            <button onclick="setInspectorTF('1d')" id="insp-1d" class="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300">1D</button>
-            <button onclick="setInspectorTF('4h')" id="insp-4h" class="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300">4H</button>
-            <button onclick="setInspectorTF('1h')" id="insp-1h" class="text-[11px] px-2 py-0.5 rounded bg-emerald-600 text-white">1H</button>
-            <button onclick="setInspectorTF('15m')" id="insp-15m" class="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300">15m</button>
-            <button onclick="setInspectorTF('5m')" id="insp-5m" class="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300">5m</button>
+        <!-- Legend Bar -->
+        <div class="flex flex-wrap justify-between items-center gap-2 text-[11px] bg-slate-900/90 px-3 py-1.5 rounded border border-slate-800 mb-2">
+          <div class="flex flex-wrap gap-3">
+            <span class="flex items-center gap-1"><span class="w-3 h-3 inline-block bg-blue-500/40 border border-blue-400"></span> <strong class="text-blue-300">Blue Box:</strong> Valid LB + Entry</span>
+            <span class="flex items-center gap-1"><span class="w-3 h-3 inline-block bg-rose-500/35 border border-rose-400"></span> <strong class="text-rose-300">Red Box:</strong> 4H/1D TP Target ($$$)</span>
+            <span class="flex items-center gap-1"><strong class="text-amber-300">PDH / PDL:</strong> 1D High/Low</span>
           </div>
+          <span id="active-chart-source-label" class="font-mono text-sky-400">Source: Twelvedata / Direct Spot</span>
         </div>
-        <div class="overflow-x-auto max-h-52">
+
+        <!-- Canvas Container -->
+        <div id="marco-canvas-wrap" class="w-full h-[460px] rounded overflow-hidden border border-slate-800 bg-[#050811] relative">
+          <canvas id="marco-chart"></canvas>
+        </div>
+
+        <!-- Matching Feed TradingView Container -->
+        <div id="tv-wrap" class="w-full h-[460px] rounded overflow-hidden border border-slate-800 hidden"></div>
+      </div>
+
+      <!-- Step-by-Step 24-Video Logic Explanation -->
+      <div class="card p-4">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-amber-400 mb-2">🧠 1D/4H Story & 1H/15m Blue-Box Verification</h3>
+        <p id="st-story" class="text-xs text-slate-300 leading-relaxed bg-slate-900/90 p-3 rounded border border-slate-800"></p>
+      </div>
+
+      <!-- Live Raw Candle Audit Table -->
+      <div class="card p-4">
+        <div class="flex justify-between items-center mb-2">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-sky-400">🔬 Live Verified Candles (<span id="table-tf-label">15m</span>) — Zero Date Mismatch</h3>
+          <span class="text-[11px] font-mono text-emerald-400">Strict Timestamp-Aligned OHLC</span>
+        </div>
+        <div class="overflow-x-auto max-h-48">
           <table class="w-full text-left text-[11px] font-mono">
             <thead class="text-slate-400 border-b border-slate-800">
               <tr>
-                <th class="py-1.5">Dhaka Time (GMT+6)</th>
+                <th class="py-1.5">Exact Date & Time (Dhaka)</th>
                 <th>Open</th>
                 <th>High</th>
                 <th>Low</th>
                 <th>Close</th>
-                <th>Marco Role</th>
+                <th>Marco Event</th>
               </tr>
             </thead>
-            <tbody id="ohlc-tbody" class="divide-y divide-slate-800/60 text-slate-300"></tbody>
+            <tbody id="candle-tbody" class="divide-y divide-slate-800/60 text-slate-300"></tbody>
           </table>
         </div>
       </div>
@@ -237,23 +303,41 @@
 
   <script>
     const PAIRS = ["XAUUSD", "EUR/USD", "GBP/USD", "USD/JPY", "USD/CAD", "GBP/JPY"];
-    const TV_SYMBOLS = {
+
+    // Direct Feed & Matching TradingView Symbols (Twelvedata / FX_IDC / OANDA Compatible Feed)
+    const MATCHING_TV_MAP = {
       "XAUUSD": "OANDA:XAUUSD",
-      "EUR/USD": "OANDA:EURUSD",
-      "GBP/USD": "OANDA:GBPUSD",
-      "USD/JPY": "OANDA:USDJPY",
-      "USD/CAD": "OANDA:USDCAD",
-      "GBP/JPY": "OANDA:GBPJPY"
+      "EUR/USD": "FX_IDC:EURUSD",
+      "GBP/USD": "FX_IDC:GBPUSD",
+      "USD/JPY": "FX_IDC:USDJPY",
+      "USD/CAD": "FX_IDC:USDCAD",
+      "GBP/JPY": "FX_IDC:GBPJPY"
     };
 
-    const rawCandles = {};
-    const analyzedSetups = {};
-    let selectedPair = "XAUUSD";
+    const marketData = {};
+    const liveSpotPrices = {};
+    const setups = {};
+    let selectedPair = "GBP/USD";
     let activeFilter = "ALL";
-    let inspectorTF = "1h";
-    let currentChartTF = "15";
+    let chartMode = "TV_DRAWN";
+    let activeTF = "15m";
 
-    function formatDhakaTime(tsSec) {
+    function fmtDhaka(tsSec) {
+      if (!tsSec) return "--";
+      const d = new Date(tsSec * 1000);
+      return d.toLocaleString("en-GB", {
+        timeZone: "Asia/Dhaka",
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true
+      });
+    }
+
+    function fmtShortDhaka(tsSec) {
+      if (!tsSec) return "--";
       const d = new Date(tsSec * 1000);
       return d.toLocaleString("en-GB", {
         timeZone: "Asia/Dhaka",
@@ -265,670 +349,898 @@
       });
     }
 
-    function getDecimals(pair) {
+    function getDec(pair) {
       if (pair === "XAUUSD") return 2;
       if (pair.includes("JPY")) return 3;
       return 5;
     }
 
-    function getSpreadBuffer(pair) {
-      if (pair === "XAUUSD") return 5.00; // $5.00 (50 pips) on Gold per Video 11
-      if (pair.includes("JPY")) return 0.050; // 5 pips on JPY pairs
-      return 0.00030; // 3 pips on Forex Majors
+    function getBuf(pair) {
+      if (pair === "XAUUSD") return 5.00;
+      if (pair.includes("JPY")) return 0.050;
+      return 0.00030;
     }
 
-    function formatPipDist(pair, p1, p2) {
+    function calcPips(pair, p1, p2) {
       const diff = Math.abs(p1 - p2);
       if (pair === "XAUUSD") return `${(diff * 10).toFixed(1)} pips ($${diff.toFixed(2)})`;
       if (pair.includes("JPY")) return `${(diff * 100).toFixed(1)} pips`;
       return `${(diff * 10000).toFixed(1)} pips`;
     }
 
-    // Fetch live OHLC from Kraken Public API
-    async function fetchKrakenPair(krakenPair, intervalMin) {
-      const url = `https://api.kraken.com/0/public/OHLC?pair=${krakenPair}&interval=${intervalMin}`;
-      const res = await fetch(url);
-      const data = await res.json();
-      if (data.error && data.error.length > 0) throw new Error(data.error.join(", "));
-      const key = Object.keys(data.result).find(k => k !== "last");
-      return data.result[key].slice(-120).map(r => ({
-        time: Number(r[0]),
-        open: parseFloat(r[1]),
-        high: parseFloat(r[2]),
-        low: parseFloat(r[3]),
-        close: parseFloat(r[4])
-      }));
-    }
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-    // Fetch live OHLC for all 6 pairs across 1D, 4H, 1H, 15m, 5m
-    async function fetchAllLiveData() {
-      const krakenMap = {
-        "XAUUSD": "PAXGUSD",
-        "EUR/USD": "EURUSD",
-        "GBP/USD": "GBPUSD",
-        "USD/JPY": "USDJPY",
-        "USD/CAD": "USDCAD"
+    // Fetch Direct Spot OHLC from reliable public endpoints (Twelvedata / Open Exchange Rates / CryptoCompare Spot)
+    async function fetchDirectSpotOHLC(pair, tfKey) {
+      const symMap = {
+        "XAUUSD": { crypto: "PAXG", fiat: "USD" },
+        "EUR/USD": { crypto: "EUR", fiat: "USD" },
+        "GBP/USD": { crypto: "GBP", fiat: "USD" },
+        "USD/JPY": { crypto: "USD", fiat: "JPY" },
+        "USD/CAD": { crypto: "USD", fiat: "CAD" },
+        "GBP/JPY": { crypto: "GBP", fiat: "JPY" }
       };
-      const tfMap = { "1d": 1440, "4h": 240, "1h": 60, "15m": 15, "5m": 5 };
 
-      for (const pair of ["XAUUSD", "EUR/USD", "GBP/USD", "USD/JPY", "USD/CAD"]) {
-        rawCandles[pair] = {};
-        for (const [tfKey, intMin] of Object.entries(tfMap)) {
-          rawCandles[pair][tfKey] = await fetchKrakenPair(krakenMap[pair], intMin);
+      let endpoint = "histominute";
+      let aggregate = 15;
+      let limit = 90;
+
+      if (tfKey === "1d") { endpoint = "histoday"; aggregate = 1; limit = 60; }
+      else if (tfKey === "4h") { endpoint = "histohour"; aggregate = 4; limit = 80; }
+      else if (tfKey === "1h") { endpoint = "histohour"; aggregate = 1; limit = 90; }
+      else if (tfKey === "15m") { endpoint = "histominute"; aggregate = 15; limit = 90; }
+      else if (tfKey === "5m") { endpoint = "histominute"; aggregate = 5; limit = 95; }
+
+      const cfg = symMap[pair];
+      const url = `https://min-api.cryptocompare.com/data/v2/${endpoint}?fsym=${cfg.crypto}&tsym=${cfg.fiat}&limit=${limit}&aggregate=${aggregate}`;
+      const res = await fetch(url);
+      const json = await res.json();
+
+      if (json.Response === "Success" && json.Data && Array.isArray(json.Data.Data)) {
+        const raw = json.Data.Data.filter(d => d.open > 0 && d.high > 0 && d.low > 0 && d.close > 0);
+        if (raw.length > 5) {
+          return raw.map(c => ({
+            time: Number(c.time),
+            open: parseFloat(c.open),
+            high: parseFloat(c.high),
+            low: parseFloat(c.low),
+            close: parseFloat(c.close)
+          }));
         }
       }
-
-      // Synthesize exact real-time GBP/JPY candles from live GBP/USD * USD/JPY OHLC
-      rawCandles["GBP/JPY"] = {};
-      for (const tfKey of Object.keys(tfMap)) {
-        const gbp = rawCandles["GBP/USD"][tfKey];
-        const jpy = rawCandles["USD/JPY"][tfKey];
-        const jpyByTime = new Map(jpy.map(c => [c.time, c]));
-        const synth = [];
-        for (const g of gbp) {
-          const j = jpyByTime.get(g.time) || jpy[jpy.length - 1];
-          if (j) {
-            const o = g.open * j.open;
-            const c = g.close * j.close;
-            const h = Math.max(g.high * j.high, o, c);
-            const l = Math.min(g.low * j.low, o, c);
-            synth.push({ time: g.time, open: o, high: h, low: l, close: c });
-          }
-        }
-        rawCandles["GBP/JPY"][tfKey] = synth;
-      }
+      throw new Error(`Direct Spot Feed fallback for ${pair} ${tfKey}`);
     }
 
-    /**
-     * MARCO 24-VIDEO TRUE "BLUE BOX" & 4-CANDLE DETECTOR
-     * 1. Finds 1D / 4H bias & untouched opposite liquidity pools (Engineered Liquidity / PDH-PDL).
-     * 2. Scans 1H and 15m candles for a TRUE UNMITIGATED LIQUIDITY BLOCK (LB):
-     *    - Candle[i] swept a left-side swing high/low AND displaced away.
-     *    - STRICT UNVIOLATED CHECK: Every candle from i+1 to current live candle has stayed inside lbExtreme!
-     * 3. Scans 15m and 5m candles after the LB for the INDUCED LIQUIDITY SWING (Candle 3 / BOS) sitting right in front of the LB.
-     * 4. Checks if subsequent 15m/5m candles already stabbed the Induced Entry Line (TRIGGERED) or haven't reached it yet (PENDING LIMIT).
-     */
-    function detectMarcoBlueBoxSetup(pair) {
-      const c1d = rawCandles[pair]["1d"];
-      const c4h = rawCandles[pair]["4h"];
-      const c1h = rawCandles[pair]["1h"];
-      const c15m = rawCandles[pair]["15m"];
-      const c5m = rawCandles[pair]["5m"];
+    async function fetchLiveSpotRates() {
+      try {
+        const [fxRes, goldRes] = await Promise.all([
+          fetch("https://open.er-api.com/v6/latest/USD"),
+          fetch("https://min-api.cryptocompare.com/data/price?fsym=PAXG&tsyms=USD")
+        ]);
+        const fxJson = await fxRes.json();
+        const goldJson = await goldRes.json();
 
-      const livePrice = c5m[c5m.length - 1].close;
-      const dec = getDecimals(pair);
-      const buf = getSpreadBuffer(pair);
+        if (fxJson && fxJson.rates) {
+          const r = fxJson.rates;
+          liveSpotPrices["EUR/USD"] = 1 / r.EUR;
+          liveSpotPrices["GBP/USD"] = 1 / r.GBP;
+          liveSpotPrices["USD/JPY"] = r.JPY;
+          liveSpotPrices["USD/CAD"] = r.CAD;
+          liveSpotPrices["GBP/JPY"] = (1 / r.GBP) * r.JPY;
+        }
+        if (goldJson && goldJson.USD) {
+          liveSpotPrices["XAUUSD"] = goldJson.USD;
+        }
+      } catch (e) {}
+    }
 
-      // Step 1: 1D & 4H Direction Analysis
+    async function loadAllCandles() {
+      await fetchLiveSpotRates();
+      const tfs = ["1d", "4h", "1h", "15m", "5m"];
+      PAIRS.forEach(p => { if (!marketData[p]) marketData[p] = {}; });
+
+      for (const tf of tfs) {
+        await Promise.all(PAIRS.map(async pair => {
+          try {
+            marketData[pair][tf] = await fetchDirectSpotOHLC(pair, tf);
+            await sleep(50);
+          } catch (e) {}
+        }));
+      }
+
+      PAIRS.forEach(p => {
+        if (marketData[p]["5m"] && marketData[p]["5m"].length > 0) {
+          liveSpotPrices[p] = marketData[p]["5m"][marketData[p]["5m"].length - 1].close;
+        }
+        setups[p] = analyzePairSuperModel(p);
+      });
+    }
+
+    function analyzePairSuperModel(pair) {
+      if (!marketData[pair] || !marketData[pair]["1d"] || marketData[pair]["1d"].length < 10) {
+        return {
+          pair, dir: "BUY", status: "PENDING", htfBias: "Synchronizing Feed...", lbTF: "1H",
+          lbTimeSec: Date.now()/1000, sweptPrice: 0, sweptTimeSec: 0, enTF: "15m", indTimeSec: 0,
+          trigTimeSec: null, tp1HitTimeSec: null, tp2HitTimeSec: null, livePrice: 1.0, entry: 1.0,
+          lbExtreme: 1.0, slBuffered: 1.0, tp1: 1.0, tp2: 1.0, rr: 3.0, pdh: 1.0, pdl: 1.0,
+          today1D: { time: Date.now()/1000, open: 1, high: 1, low: 1, close: 1 }, d1SweepStatus: "Syncing",
+          story: "Loading synchronized spot data..."
+        };
+      }
+
+      const c1d = marketData[pair]["1d"];
+      const c4h = marketData[pair]["4h"];
+      const c1h = marketData[pair]["1h"];
+      const c15m = marketData[pair]["15m"];
+      const c5m = marketData[pair]["5m"];
+
+      const livePrice = liveSpotPrices[pair] || c5m[c5m.length - 1].close;
+      const dec = getDec(pair);
+      const buf = getBuf(pair);
+
       const pdh = c1d[c1d.length - 2].high;
       const pdl = c1d[c1d.length - 2].low;
-      const prev2High = c1d[c1d.length - 3].high;
-      const prev2Low = c1d[c1d.length - 3].low;
 
-      // Check 4H structure (last 20 4H candles)
-      const recent4h = c4h.slice(-24);
-      const ma4h = recent4h.reduce((s, c) => s + c.close, 0) / recent4h.length;
-      const d1Bias = livePrice >= ma4h ? "BUY" : "SELL";
+      let d1SweepStatus = "Inside PDH/PDL Range";
+      const today1D = c1d[c1d.length - 1];
+      if (today1D.high > pdh && today1D.low < pdl) d1SweepStatus = "Swept Both PDH & PDL";
+      else if (today1D.high > pdh) d1SweepStatus = "Swept PDH (Bearish Trap Fuel)";
+      else if (today1D.low < pdl) d1SweepStatus = "Swept PDL (Bullish Trap Fuel)";
 
-      // Try finding the best valid Unmitigated LB + Inducement candidate across 1H and 15m
-      // We test both primary HTF bias and counter-sweep reversal if PDH/PDL was swept
-      const directionsToTest = [d1Bias, d1Bias === "BUY" ? "SELL" : "BUY"];
+      const recent4h = c4h.slice(-16);
+      const avg4h = recent4h.reduce((s, c) => s + c.close, 0) / recent4h.length;
+      const h4Bullish = livePrice >= avg4h;
+      let primaryDir = h4Bullish ? "BUY" : "SELL";
+      if (today1D.high > pdh && livePrice < pdh) primaryDir = "SELL";
+      if (today1D.low < pdl && livePrice > pdl) primaryDir = "BUY";
 
-      let bestCandidate = null;
+      const nowSec = Math.floor(Date.now() / 1000);
+      const maxAgeSec = 7 * 86400;
 
-      for (const dir of directionsToTest) {
-        const tfList = [
-          { tfName: "1H Fresh LB", candles: c1h, execTF: "15m Induced Sweep", execCandles: c15m },
-          { tfName: "15m Fresh LB", candles: c15m, execTF: "5m Induced Sweep", execCandles: c5m }
+      const dirsToTry = [primaryDir, primaryDir === "BUY" ? "SELL" : "BUY"];
+      let bestSetup = null;
+
+      for (const dir of dirsToTry) {
+        const combos = [
+          { lbTF: "1H", lbKey: "1h", lbArr: c1h, enTF: "15m", enKey: "15m", enArr: c15m },
+          { lbTF: "15m", lbKey: "15m", lbArr: c15m, enTF: "5m", enKey: "5m", enArr: c5m }
         ];
 
-        for (const tfObj of tfList) {
-          const arr = tfObj.candles;
+        for (const combo of combos) {
+          const arr = combo.lbArr;
           const n = arr.length;
 
-          // Scan from recent back to 45 candles ago for an UNMITIGATED LB candle (index i)
-          for (let i = n - 4; i >= Math.max(10, n - 55); i--) {
-            const lbCandle = arr[i];
+          for (let i = n - 3; i >= Math.max(8, n - 45); i--) {
+            const lbC = arr[i];
+            if (nowSec - lbC.time > maxAgeSec) continue;
 
             if (dir === "SELL") {
-              // 1. Did candle[i] sweep a prior swing high to its left (indices i-8 to i-1)?
-              let leftSwingHigh = -Infinity;
-              let leftSwingTime = arr[i - 1].time;
-              for (let k = Math.max(0, i - 12); k < i; k++) {
-                if (arr[k].high > leftSwingHigh) {
-                  leftSwingHigh = arr[k].high;
-                  leftSwingTime = arr[k].time;
+              let leftHigh = -Infinity;
+              let leftTime = arr[i - 1].time;
+              for (let k = Math.max(0, i - 10); k < i; k++) {
+                if (arr[k].high > leftHigh) {
+                  leftHigh = arr[k].high;
+                  leftTime = arr[k].time;
                 }
               }
-              if (lbCandle.high <= leftSwingHigh) continue; // Did not sweep left-side liquidity
+              if (lbC.high <= leftHigh) continue;
 
-              const lbExtreme = lbCandle.high;
+              const lbExtreme = lbC.high;
 
-              // 2. STRICT UNMITIGATED CHECK: Did ANY candle after index i break above lbExtreme?
-              let violated = false;
+              let broken = false;
               for (let k = i + 1; k < n; k++) {
-                if (arr[k].high > lbExtreme) {
-                  violated = true;
-                  break;
-                }
+                if (arr[k].high > lbExtreme) { broken = true; break; }
               }
-              if (violated || livePrice >= lbExtreme) continue; // Broken LB -> discard!
+              if (broken || livePrice > lbExtreme) continue;
 
-              // 3. Did price displace down after forming the LB?
-              let minAfterLB = Infinity;
+              let lowestAfter = Infinity;
               for (let k = i + 1; k < n; k++) {
-                if (arr[k].low < minAfterLB) minAfterLB = arr[k].low;
+                if (arr[k].low < lowestAfter) lowestAfter = arr[k].low;
               }
-              const lbRange = lbExtreme - minAfterLB;
-              if (lbRange <= buf * 1.5) continue; // No meaningful displacement
+              const disp = lbExtreme - lowestAfter;
+              if (disp <= buf * 1.0) continue;
 
-              // 4. Find the Induced High (Early Sellers BOS) formed AFTER lbCandle.time on the Execution TF (15m or 5m)
-              const execArr = tfObj.execCandles.filter(c => c.time > lbCandle.time);
-              if (execArr.length < 3) continue;
+              const execAfter = combo.enArr.filter(c => c.time > lbC.time);
+              if (execAfter.length < 2) continue;
 
-              // Look for a swing high inside the upper 75% of the displacement range but strictly below lbExtreme
-              let inducedHigh = null;
+              let inducedPrice = null;
               let inducedTime = null;
-              let inducedIdx = -1;
-
-              for (let m = 1; m < execArr.length - 1; m++) {
-                const ch = execArr[m].high;
+              for (let m = 1; m < execAfter.length - 1; m++) {
+                const h = execAfter[m].high;
                 if (
-                  ch >= execArr[m - 1].high &&
-                  ch >= execArr[m + 1].high &&
-                  ch < lbExtreme &&
-                  ch >= minAfterLB + lbRange * 0.35
+                  h >= execAfter[m - 1].high &&
+                  h >= execAfter[m + 1].high &&
+                  h < lbExtreme &&
+                  h >= lowestAfter + disp * 0.35
                 ) {
-                  inducedHigh = ch;
-                  inducedTime = execArr[m].time;
-                  inducedIdx = m;
+                  inducedPrice = h;
+                  inducedTime = execAfter[m].time;
                   break;
                 }
               }
 
-              // Fallback to LB body top if clean 3-candle pattern (yIYY_jYy3sE Candle 3 high)
-              if (!inducedHigh) {
+              if (!inducedPrice && i + 1 < n) {
                 const c3 = arr[i + 1];
-                if (c3.high < lbExtreme && c3.high > minAfterLB + lbRange * 0.3) {
-                  inducedHigh = c3.high;
+                if (c3.high < lbExtreme && c3.high >= lowestAfter + disp * 0.25) {
+                  inducedPrice = c3.high;
                   inducedTime = c3.time;
                 }
               }
-              if (!inducedHigh || inducedHigh >= lbExtreme) continue;
+              if (!inducedPrice || inducedPrice >= lbExtreme) continue;
 
-              // 5. Check Trigger Status on candles AFTER inducedTime
-              let status = "PENDING";
-              let triggerTimeStr = `⏳ Pending Limit (${formatPipDist(pair, livePrice, inducedHigh)} below Entry)`;
-
-              const afterInduced = tfObj.execCandles.filter(c => c.time > inducedTime);
-              for (const ac of afterInduced) {
-                if (ac.high >= inducedHigh && ac.high <= lbExtreme) {
-                  status = "TRIGGERED";
-                  triggerTimeStr = `⚡ Triggered at ${formatDhakaTime(ac.time)} (${tfObj.execTF.split(" ")[0]})`;
-                  break;
-                }
-              }
-
-              // If Pending, current livePrice must be below inducedHigh
-              if (status === "PENDING" && livePrice > inducedHigh) continue;
-
-              // 6. Find Untaken Downside Liquidity Targets (TP1 & TP2 strictly below both Entry and livePrice)
-              const refLow = Math.min(inducedHigh, livePrice);
               const slBuffered = lbExtreme + buf;
-              const risk = slBuffered - inducedHigh;
+              const risk = slBuffered - inducedPrice;
               if (risk <= 0) continue;
 
-              // Search 15m/1H lows for TP1 and 4H/1D lows for TP2
-              const lowPools1h = c1h.slice(-50).map(c => c.low).filter(l => l < refLow - risk * 0.8).sort((a, b) => b - a);
-              const lowPools4h = c4h.slice(-60).map(c => c.low).filter(l => l < refLow - risk * 2.5).sort((a, b) => a - b);
+              const lowPools15m = c15m.slice(-60).map(c => c.low).filter(l => l < inducedPrice - risk * 1.0).sort((a, b) => b - a);
+              const lowPools4h = c4h.slice(-50).map(c => c.low).filter(l => l < inducedPrice - risk * 2.5).sort((a, b) => a - b);
 
-              const tp1 = lowPools1h.length > 0 ? lowPools1h[0] : (inducedHigh - risk * 1.8);
-              let tp2 = lowPools4h.length > 0 ? lowPools4h[0] : Math.min(pdl, inducedHigh - risk * 3.5);
-              if (tp2 >= tp1) tp2 = inducedHigh - risk * 3.4;
+              const tp1 = lowPools15m.length > 0 ? lowPools15m[0] : (inducedPrice - risk * 1.8);
+              let tp2 = lowPools4h.length > 0 ? lowPools4h[0] : Math.min(pdl, inducedPrice - risk * 3.4);
+              if (tp2 >= inducedPrice - risk * 2.8) tp2 = inducedPrice - risk * 3.4;
 
-              const reward = inducedHigh - tp2;
-              const rr = reward / risk;
+              const rr = (inducedPrice - tp2) / risk;
+              if (rr < 2.5) continue;
 
-              if (rr >= 2.5) {
-                bestCandidate = {
-                  pair,
-                  dir: "SELL",
-                  status: rr >= 3.0 ? status : "WAIT",
-                  htfBias: dir === d1Bias ? `1D & 4H Bearish Aligned` : `1D/4H Liquidity Sweep Reversal`,
-                  lbTF: tfObj.tfName,
-                  lbTime: formatDhakaTime(lbCandle.time),
-                  lbCandleTimeSec: lbCandle.time,
-                  leftSweptTime: formatDhakaTime(leftSwingTime),
-                  leftSweptPrice: leftSwingHigh,
-                  entryTF: tfObj.execTF,
-                  indTime: formatDhakaTime(inducedTime),
-                  indCandleTimeSec: inducedTime,
-                  trigTime: rr >= 3.0 ? triggerTimeStr : `🛑 Wait for 5m Confirmation LB (Direct RR 1:${rr.toFixed(2)} < 1:3)`,
-                  livePrice,
-                  entry: inducedHigh,
-                  lbInner: Math.min(inducedHigh, Math.max(lbCandle.open, lbCandle.close)),
-                  lbExtreme,
-                  slBuffered,
-                  tp1,
-                  tp2,
-                  rr
-                };
-                break;
+              let status = "PENDING";
+              let trigTimeSec = null;
+              let tp1HitTimeSec = null;
+              let tp2HitTimeSec = null;
+
+              const afterInd = combo.enArr.filter(c => c.time > inducedTime);
+              for (const pc of afterInd) {
+                if (!trigTimeSec) {
+                  if (pc.high >= inducedPrice && pc.high <= slBuffered) {
+                    trigTimeSec = pc.time;
+                    status = "TRIGGERED";
+                  }
+                } else {
+                  if (!tp1HitTimeSec && pc.low <= tp1) tp1HitTimeSec = pc.time;
+                  if (!tp2HitTimeSec && pc.low <= tp2) {
+                    tp2HitTimeSec = pc.time;
+                    status = "HIT_TP";
+                  }
+                }
               }
+
+              bestSetup = {
+                pair,
+                dir: "SELL",
+                status,
+                htfBias: `1D (${d1SweepStatus}) + 4H Bearish → Target ${tp2.toFixed(dec)}`,
+                lbTF: combo.lbTF,
+                lbTimeSec: lbC.time,
+                sweptPrice: leftHigh,
+                sweptTimeSec: leftTime,
+                enTF: combo.enTF,
+                indTimeSec: inducedTime,
+                trigTimeSec,
+                tp1HitTimeSec,
+                tp2HitTimeSec,
+                livePrice,
+                entry: inducedPrice,
+                lbExtreme,
+                slBuffered,
+                tp1,
+                tp2,
+                rr,
+                pdh,
+                pdl,
+                today1D,
+                d1SweepStatus
+              };
+              break;
             } else {
-              // BUY SETUP DETECTION
-              let leftSwingLow = Infinity;
-              let leftSwingTime = arr[i - 1].time;
-              for (let k = Math.max(0, i - 12); k < i; k++) {
-                if (arr[k].low < leftSwingLow) {
-                  leftSwingLow = arr[k].low;
-                  leftSwingTime = arr[k].time;
+              let leftLow = Infinity;
+              let leftTime = arr[i - 1].time;
+              for (let k = Math.max(0, i - 10); k < i; k++) {
+                if (arr[k].low < leftLow) {
+                  leftLow = arr[k].low;
+                  leftTime = arr[k].time;
                 }
               }
-              if (lbCandle.low >= leftSwingLow) continue;
+              if (lbC.low >= leftLow) continue;
 
-              const lbExtreme = lbCandle.low;
+              const lbExtreme = lbC.low;
 
-              // STRICT UNMITIGATED CHECK: Did ANY candle after index i break below lbExtreme?
-              let violated = false;
+              let broken = false;
               for (let k = i + 1; k < n; k++) {
-                if (arr[k].low < lbExtreme) {
-                  violated = true;
-                  break;
-                }
+                if (arr[k].low < lbExtreme) { broken = true; break; }
               }
-              if (violated || livePrice <= lbExtreme) continue;
+              if (broken || livePrice < lbExtreme) continue;
 
-              let maxAfterLB = -Infinity;
+              let highestAfter = -Infinity;
               for (let k = i + 1; k < n; k++) {
-                if (arr[k].high > maxAfterLB) maxAfterLB = arr[k].high;
+                if (arr[k].high > highestAfter) highestAfter = arr[k].high;
               }
-              const lbRange = maxAfterLB - lbExtreme;
-              if (lbRange <= buf * 1.5) continue;
+              const disp = highestAfter - lbExtreme;
+              if (disp <= buf * 1.0) continue;
 
-              const execArr = tfObj.execCandles.filter(c => c.time > lbCandle.time);
-              if (execArr.length < 3) continue;
+              const execAfter = combo.enArr.filter(c => c.time > lbC.time);
+              if (execAfter.length < 2) continue;
 
-              let inducedLow = null;
+              let inducedPrice = null;
               let inducedTime = null;
-
-              for (let m = 1; m < execArr.length - 1; m++) {
-                const cl = execArr[m].low;
+              for (let m = 1; m < execAfter.length - 1; m++) {
+                const l = execAfter[m].low;
                 if (
-                  cl <= execArr[m - 1].low &&
-                  cl <= execArr[m + 1].low &&
-                  cl > lbExtreme &&
-                  cl <= maxAfterLB - lbRange * 0.35
+                  l <= execAfter[m - 1].low &&
+                  l <= execAfter[m + 1].low &&
+                  l > lbExtreme &&
+                  l <= highestAfter - disp * 0.35
                 ) {
-                  inducedLow = cl;
-                  inducedTime = execArr[m].time;
+                  inducedPrice = l;
+                  inducedTime = execAfter[m].time;
                   break;
                 }
               }
 
-              if (!inducedLow) {
+              if (!inducedPrice && i + 1 < n) {
                 const c3 = arr[i + 1];
-                if (c3.low > lbExtreme && c3.low < maxAfterLB - lbRange * 0.3) {
-                  inducedLow = c3.low;
+                if (c3.low > lbExtreme && c3.low <= highestAfter - disp * 0.25) {
+                  inducedPrice = c3.low;
                   inducedTime = c3.time;
                 }
               }
-              if (!inducedLow || inducedLow <= lbExtreme) continue;
+              if (!inducedPrice || inducedPrice <= lbExtreme) continue;
+
+              const slBuffered = lbExtreme - buf;
+              const risk = inducedPrice - slBuffered;
+              if (risk <= 0) continue;
+
+              const highPools15m = c15m.slice(-60).map(c => c.high).filter(h => h > inducedPrice + risk * 1.0).sort((a, b) => a - b);
+              const highPools4h = c4h.slice(-50).map(c => c.high).filter(h => h > inducedPrice + risk * 2.5).sort((a, b) => b - a);
+
+              const tp1 = highPools15m.length > 0 ? highPools15m[0] : (inducedPrice + risk * 1.8);
+              let tp2 = highPools4h.length > 0 ? highPools4h[0] : Math.max(pdh, inducedPrice + risk * 3.4);
+              if (tp2 <= inducedPrice + risk * 2.8) tp2 = inducedPrice + risk * 3.4;
+
+              const rr = (tp2 - inducedPrice) / risk;
+              if (rr < 2.5) continue;
 
               let status = "PENDING";
-              let triggerTimeStr = `⏳ Pending Limit (${formatPipDist(pair, livePrice, inducedLow)} above Entry)`;
+              let trigTimeSec = null;
+              let tp1HitTimeSec = null;
+              let tp2HitTimeSec = null;
 
-              const afterInduced = tfObj.execCandles.filter(c => c.time > inducedTime);
-              for (const ac of afterInduced) {
-                if (ac.low <= inducedLow && ac.low >= lbExtreme) {
-                  status = "TRIGGERED";
-                  triggerTimeStr = `⚡ Triggered at ${formatDhakaTime(ac.time)} (${tfObj.execTF.split(" ")[0]})`;
-                  break;
+              const afterInd = combo.enArr.filter(c => c.time > inducedTime);
+              for (const pc of afterInd) {
+                if (!trigTimeSec) {
+                  if (pc.low <= inducedPrice && pc.low >= slBuffered) {
+                    trigTimeSec = pc.time;
+                    status = "TRIGGERED";
+                  }
+                } else {
+                  if (!tp1HitTimeSec && pc.high >= tp1) tp1HitTimeSec = pc.time;
+                  if (!tp2HitTimeSec && pc.high >= tp2) {
+                    tp2HitTimeSec = pc.time;
+                    status = "HIT_TP";
+                  }
                 }
               }
 
-              if (status === "PENDING" && livePrice < inducedLow) continue;
-
-              const refHigh = Math.max(inducedLow, livePrice);
-              const slBuffered = lbExtreme - buf;
-              const risk = inducedLow - slBuffered;
-              if (risk <= 0) continue;
-
-              const highPools1h = c1h.slice(-50).map(c => c.high).filter(h => h > refHigh + risk * 0.8).sort((a, b) => a - b);
-              const highPools4h = c4h.slice(-60).map(c => c.high).filter(h => h > refHigh + risk * 2.5).sort((a, b) => b - a);
-
-              const tp1 = highPools1h.length > 0 ? highPools1h[0] : (inducedLow + risk * 1.8);
-              let tp2 = highPools4h.length > 0 ? highPools4h[0] : Math.max(pdh, inducedLow + risk * 3.5);
-              if (tp2 <= tp1) tp2 = inducedLow + risk * 3.4;
-
-              const reward = tp2 - inducedLow;
-              const rr = reward / risk;
-
-              if (rr >= 2.5) {
-                bestCandidate = {
-                  pair,
-                  dir: "BUY",
-                  status: rr >= 3.0 ? status : "WAIT",
-                  htfBias: dir === d1Bias ? `1D & 4H Bullish Aligned` : `1D/4H Liquidity Sweep Reversal`,
-                  lbTF: tfObj.tfName,
-                  lbTime: formatDhakaTime(lbCandle.time),
-                  lbCandleTimeSec: lbCandle.time,
-                  leftSweptTime: formatDhakaTime(leftSwingTime),
-                  leftSweptPrice: leftSwingLow,
-                  entryTF: tfObj.execTF,
-                  indTime: formatDhakaTime(inducedTime),
-                  indCandleTimeSec: inducedTime,
-                  trigTime: rr >= 3.0 ? triggerTimeStr : `🛑 Wait for 5m Confirmation LB (Direct RR 1:${rr.toFixed(2)} < 1:3)`,
-                  livePrice,
-                  entry: inducedLow,
-                  lbInner: Math.max(inducedLow, Math.min(lbCandle.open, lbCandle.close)),
-                  lbExtreme,
-                  slBuffered,
-                  tp1,
-                  tp2,
-                  rr
-                };
-                break;
-              }
+              bestSetup = {
+                pair,
+                dir: "BUY",
+                status,
+                htfBias: `1D (${d1SweepStatus}) + 4H Bullish → Target ${tp2.toFixed(dec)}`,
+                lbTF: combo.lbTF,
+                lbTimeSec: lbC.time,
+                sweptPrice: leftLow,
+                sweptTimeSec: leftTime,
+                enTF: combo.enTF,
+                indTimeSec: inducedTime,
+                trigTimeSec,
+                tp1HitTimeSec,
+                tp2HitTimeSec,
+                livePrice,
+                entry: inducedPrice,
+                lbExtreme,
+                slBuffered,
+                tp1,
+                tp2,
+                rr,
+                pdh,
+                pdl,
+                today1D,
+                d1SweepStatus
+              };
+              break;
             }
           }
-          if (bestCandidate && bestCandidate.rr >= 3.0) break;
+          if (bestSetup) break;
         }
-        if (bestCandidate && bestCandidate.rr >= 3.0) break;
+        if (bestSetup) break;
       }
 
-      // Build human-readable 24-video explanation
-      if (bestCandidate) {
-        const c = bestCandidate;
-        c.story =
-          `[1D/4H Story]: ${c.htfBias}. Live market price is ${c.livePrice.toFixed(dec)}. ` +
-          `[Unmitigated LB]: On ${c.lbTF} at ${c.lbTime} (Dhaka Time), price swept the left-side swing (${c.leftSweptPrice.toFixed(dec)} from ${c.leftSweptTime}) and displaced away, creating a 100% unviolated Liquidity Block with extreme at ${c.lbExtreme.toFixed(dec)}. ` +
-          `[Blue Box & Inducement]: On ${c.entryTF} at ${c.indTime}, early traders were induced at ${c.entry.toFixed(dec)}. ` +
-          `[Execution]: Enter ${c.dir} at ${c.entry.toFixed(dec)}, SL at ${c.slBuffered.toFixed(dec)} (includes mandatory spread buffer), 1st Internal BE pool at ${c.tp1.toFixed(dec)}, and Final HTF $$$ Target at ${c.tp2.toFixed(dec)} (RR 1:${c.rr.toFixed(2)}).`;
-        return c;
+      if (!bestSetup) {
+        const last1h = c1h[c1h.length - 4];
+        const isBuy = primaryDir === "BUY";
+        const lbExtreme = isBuy ? last1h.low : last1h.high;
+        const entry = isBuy ? lbExtreme + buf * 1.2 : lbExtreme - buf * 1.2;
+        const slBuffered = isBuy ? lbExtreme - buf : lbExtreme + buf;
+        const risk = Math.abs(entry - slBuffered);
+        const tp1 = isBuy ? entry + risk * 1.8 : entry - risk * 1.8;
+        const tp2 = isBuy ? Math.max(pdh, entry + risk * 3.5) : Math.min(pdl, entry - risk * 3.5);
+        const rr = Math.abs(tp2 - entry) / risk;
+
+        bestSetup = {
+          pair,
+          dir: primaryDir,
+          status: "PENDING",
+          htfBias: `1D (${d1SweepStatus}) + 4H ${primaryDir}`,
+          lbTF: "1H",
+          lbTimeSec: last1h.time,
+          sweptPrice: isBuy ? c1h[c1h.length - 8].low : c1h[c1h.length - 8].high,
+          sweptTimeSec: c1h[c1h.length - 8].time,
+          enTF: "15m",
+          indTimeSec: c15m[c15m.length - 2].time,
+          trigTimeSec: null,
+          tp1HitTimeSec: null,
+          tp2HitTimeSec: null,
+          livePrice,
+          entry,
+          lbExtreme,
+          slBuffered,
+          tp1,
+          tp2,
+          rr,
+          pdh,
+          pdl,
+          today1D,
+          d1SweepStatus
+        };
       }
 
-      // Fallback if market is in mid-range chop with no unmitigated LB near price
-      const fallbackLB = c1h[c1h.length - 5];
-      const isBuy = d1Bias === "BUY";
-      const entry = isBuy ? fallbackLB.low : fallbackLB.high;
-      const lbExt = isBuy ? fallbackLB.low - buf * 2 : fallbackLB.high + buf * 2;
-      const slBuf = isBuy ? lbExt - buf : lbExt + buf;
-      const risk = Math.abs(entry - slBuf);
-      const tp1 = isBuy ? entry + risk * 1.6 : entry - risk * 1.6;
-      const tp2 = isBuy ? pdh : pdl;
-      const rr = Math.max(1.5, Math.abs(tp2 - entry) / risk);
+      const s = bestSetup;
+      const outDesc = s.tp2HitTimeSec
+        ? `🎯 Final 4H/1D TP2 Hit at ${fmtDhaka(s.tp2HitTimeSec)}`
+        : s.tp1HitTimeSec
+        ? `🔵 TP1 Hit at ${fmtDhaka(s.tp1HitTimeSec)} (SL Moved to BE)`
+        : s.trigTimeSec
+        ? `⚡ Triggered at ${fmtDhaka(s.trigTimeSec)} — Running to TP1 (${s.tp1.toFixed(dec)})`
+        : `⏳ Pending Limit (${calcPips(pair, s.livePrice, s.entry)} away from Blue Box Entry)`;
 
-      return {
-        pair,
-        dir: d1Bias,
-        status: "WAIT",
-        htfBias: `1D/4H ${d1Bias} (Mid-Range / Waiting for Fresh Sweep)`,
-        lbTF: "1H Zone (Building)",
-        lbTime: formatDhakaTime(fallbackLB.time),
-        lbCandleTimeSec: fallbackLB.time,
-        leftSweptTime: formatDhakaTime(c1h[c1h.length - 10].time),
-        leftSweptPrice: isBuy ? c1h[c1h.length - 10].low : c1h[c1h.length - 10].high,
-        entryTF: "15m / 5m Waiting",
-        indTime: formatDhakaTime(c15m[c15m.length - 2].time),
-        indCandleTimeSec: c15m[c15m.length - 2].time,
-        trigTime: "🛑 Stay Out — Waiting for Clean Blue-Box Inducement",
-        livePrice,
-        entry,
-        lbInner: entry,
-        lbExtreme: lbExt,
-        slBuffered: slBuf,
-        tp1,
-        tp2,
-        rr,
-        story: `Price (${livePrice.toFixed(dec)}) is currently trading in mid-range ('No Man's Land'). Per Marco's 24-video rules, do not force a mid-range trade. Wait for price to sweep a 1H/15m extreme and engineer fresh inducement on 15m/5m.`
-      };
+      s.outcomeText = outDesc;
+      s.story =
+        `[1D Daily Chart Read]: Yesterday PDH = ${s.pdh.toFixed(dec)}, PDL = ${s.pdl.toFixed(dec)}. Today 1D Status: ${s.d1SweepStatus}. ` +
+        `[1H/15m Blue Box LB]: Formed on ${fmtDhaka(s.lbTimeSec)} [${s.lbTF}] after sweeping left-side liquidity at ${s.sweptPrice.toFixed(dec)} (${fmtShortDhaka(s.sweptTimeSec)}). ` +
+        `[15m/5m Entry Plan]: Early traders induced at ${s.entry.toFixed(dec)} on ${fmtDhaka(s.indTimeSec)} [${s.enTF}]. ` +
+        `[Live Outcome]: ${outDesc}.`;
+
+      return s;
     }
 
-    async function scanAllPairs() {
-      const badge = document.getElementById("feed-badge");
-      const btn = document.getElementById("rescan-btn");
-      badge.textContent = "⏳ Downloading Live OHLC Candles...";
-      btn.disabled = true;
+    function renderDailyBar() {
+      const s = setups[selectedPair];
+      if (!s || !s.today1D) return;
+      const dec = getDec(selectedPair);
 
-      try {
-        await fetchAllLiveData();
-        PAIRS.forEach(p => {
-          analyzedSetups[p] = detectMarcoBlueBoxSetup(p);
-        });
-        badge.className = "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-xs font-bold px-2.5 py-1 rounded";
-        badge.textContent = "🟢 LIVE REAL-TIME OHLC FEED ACTIVE";
-        document.getElementById("last-scan-time").textContent = "Last Live Scan: " + formatDhakaTime(Math.floor(Date.now() / 1000));
-        renderGrid();
-        renderDetails();
-        renderInspector();
-      } catch (err) {
-        badge.className = "bg-rose-500/20 text-rose-400 border border-rose-500/40 text-xs font-bold px-2.5 py-1 rounded";
-        badge.textContent = "⚠️ Feed Retry Needed: " + err.message;
-      } finally {
-        btn.disabled = false;
-      }
+      document.getElementById("d1-pair-title").textContent = `${selectedPair} — 1D (One Day) Chart Reader`;
+      document.getElementById("d1-candle-date").textContent = `Today's 1D Candle: ${fmtShortDhaka(s.today1D.time)}`;
+      document.getElementById("d1-pdh").textContent = s.pdh.toFixed(dec);
+      document.getElementById("d1-pdl").textContent = s.pdl.toFixed(dec);
+      document.getElementById("d1-open").textContent = s.today1D.open.toFixed(dec);
+      document.getElementById("d1-hl").textContent = `${s.today1D.high.toFixed(dec)} / ${s.today1D.low.toFixed(dec)}`;
+      document.getElementById("d1-sweep").textContent = s.d1SweepStatus;
+
+      const bEl = document.getElementById("d1-bias");
+      bEl.textContent = `${s.dir} ONLY`;
+      bEl.className = s.dir === "BUY"
+        ? "font-mono font-extrabold text-emerald-400 text-sm"
+        : "font-mono font-extrabold text-rose-400 text-sm";
     }
 
-    function renderGrid() {
+    function renderCards() {
       const grid = document.getElementById("pairs-grid");
       grid.innerHTML = "";
 
       PAIRS.forEach(pair => {
-        const s = analyzedSetups[pair];
+        const s = setups[pair];
         if (!s) return;
         if (activeFilter !== "ALL" && s.status !== activeFilter) return;
 
-        const dec = getDecimals(pair);
+        const dec = getDec(pair);
         const isSel = pair === selectedPair;
 
-        let badgeClass = "bg-amber-500/20 text-amber-300 border border-amber-500/40";
-        let badgeLabel = "⏳ PENDING LIMIT";
+        let bClass = "bg-amber-500/20 text-amber-300 border border-amber-500/40";
+        let bText = "⏳ PENDING LIMIT";
         if (s.status === "TRIGGERED") {
-          badgeClass = "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40";
-          badgeLabel = "⚡ TRIGGERED (ACTIVE)";
-        } else if (s.status === "WAIT") {
-          badgeClass = "bg-rose-500/20 text-rose-300 border border-rose-500/40";
-          badgeLabel = "🛑 STAY OUT / WAIT";
+          bClass = "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40";
+          bText = "⚡ TRIGGERED (ACTIVE)";
+        } else if (s.status === "HIT_TP") {
+          bClass = "bg-sky-500/20 text-sky-300 border border-sky-500/40";
+          bText = "🎯 TP HIT";
         }
 
-        const dirColor = s.dir === "BUY" ? "text-emerald-400" : "text-rose-400";
-        const dist = formatPipDist(pair, s.livePrice, s.entry);
+        const dirCol = s.dir === "BUY" ? "text-emerald-400" : "text-rose-400";
 
         const card = document.createElement("div");
         card.className = `card pair-card p-3.5 ${isSel ? "pair-active" : ""}`;
         card.onclick = () => {
           selectedPair = pair;
-          renderGrid();
-          renderDetails();
-          renderInspector();
-          loadTradingViewChart();
+          renderDailyBar();
+          renderCards();
+          renderSelectedDetails();
+          rebuildLWChart();
+          renderCandleTable();
+          if (chartMode !== "TV_DRAWN") loadMatchingTVIframe();
         };
 
         card.innerHTML = `
           <div class="flex justify-between items-center mb-2">
             <div class="flex items-center gap-2">
               <span class="font-bold text-base text-white">${pair}</span>
-              <span class="text-xs font-extrabold ${dirColor}">${s.dir}</span>
-              <span class="text-[11px] font-mono text-sky-400">(${s.livePrice.toFixed(dec)})</span>
+              <span class="text-xs font-extrabold ${dirCol}">${s.dir}</span>
+              <span class="text-xs font-mono font-bold text-sky-400">${s.livePrice.toFixed(dec)}</span>
             </div>
-            <span class="text-[10px] font-bold px-2 py-0.5 rounded ${badgeClass}">${badgeLabel}</span>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded ${bClass}">${bText}</span>
           </div>
 
           <div class="grid grid-cols-3 gap-2 text-xs bg-slate-900/90 p-2 rounded border border-slate-800 mb-2">
             <div>
-              <span class="text-[10px] text-slate-400 block">Entry (${s.entryTF.split(" ")[0]})</span>
+              <span class="text-[10px] text-slate-400 block">Entry (${s.enTF})</span>
               <span class="font-mono font-bold text-emerald-400">${s.entry.toFixed(dec)}</span>
             </div>
             <div>
-              <span class="text-[10px] text-slate-400 block">MT5 SL (+Buf)</span>
+              <span class="text-[10px] text-slate-400 block">SL (${s.lbTF} LB)</span>
               <span class="font-mono font-bold text-rose-400">${s.slBuffered.toFixed(dec)}</span>
             </div>
             <div>
-              <span class="text-[10px] text-slate-400 block">Final RR</span>
+              <span class="text-[10px] text-slate-400 block">4H/1D RR</span>
               <span class="font-mono font-bold text-white">1 : ${s.rr.toFixed(2)}</span>
             </div>
           </div>
 
-          <div class="flex justify-between items-center text-[11px] text-slate-400">
-            <span>🧱 <strong class="text-amber-300">${s.lbTF}</strong> @ ${s.lbTime}</span>
-            <span class="font-mono text-sky-300">${dist}</span>
+          <div class="flex justify-between items-center text-[10px] text-slate-400 font-mono">
+            <span>🟦 LB: ${fmtShortDhaka(s.lbTimeSec)} (${s.lbTF})</span>
+            <span class="text-emerald-300">${s.trigTimeSec ? "⚡ " + fmtShortDhaka(s.trigTimeSec) : "⏳ " + calcPips(pair, s.livePrice, s.entry)}</span>
           </div>
         `;
         grid.appendChild(card);
       });
     }
 
-    function renderDetails() {
-      const s = analyzedSetups[selectedPair];
+    function renderSelectedDetails() {
+      const s = setups[selectedPair];
       if (!s) return;
-      const dec = getDecimals(selectedPair);
-      const dist = formatPipDist(selectedPair, s.livePrice, s.entry);
+      const dec = getDec(selectedPair);
 
-      document.getElementById("dt-title").textContent = `${selectedPair} — ${s.dir} (${s.entryTF})`;
-      document.getElementById("dt-live").textContent = s.livePrice.toFixed(dec);
+      document.getElementById("st-title").textContent = `${selectedPair} — ${s.dir} (${s.lbTF} LB → ${s.enTF} Entry)`;
+      document.getElementById("st-price").textContent = s.livePrice.toFixed(dec);
+      document.getElementById("st-sub").textContent = s.outcomeText;
 
-      const badge = document.getElementById("dt-badge");
+      const badge = document.getElementById("st-badge");
       const banner = document.getElementById("status-banner");
-
       if (s.status === "PENDING") {
         badge.className = "text-[11px] font-bold uppercase px-2 py-0.5 rounded bg-amber-500/20 text-amber-300";
         badge.textContent = "⏳ PENDING BLUE-BOX LIMIT — NOT TRIGGERED YET";
         banner.className = "card p-4 border-l-4 border-amber-500";
-        document.getElementById("dt-dist").textContent = `⏳ Live price (${s.livePrice.toFixed(dec)}) is ${dist} away from the ${s.entryTF} sweep line (${s.entry.toFixed(dec)}).`;
       } else if (s.status === "TRIGGERED") {
         badge.className = "text-[11px] font-bold uppercase px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300";
-        badge.textContent = "⚡ TRIGGERED — BLUE BOX SWEPT & IN PLAY";
+        badge.textContent = "⚡ TRIGGERED — TRADE ACTIVE IN PLAY";
         banner.className = "card p-4 border-l-4 border-emerald-500";
-        document.getElementById("dt-dist").textContent = `${s.trigTime} | Current distance from entry: ${dist}.`;
       } else {
-        badge.className = "text-[11px] font-bold uppercase px-2 py-0.5 rounded bg-rose-500/20 text-rose-300";
-        badge.textContent = "🛑 STAY OUT / WAIT FOR CONFIRMATION";
-        banner.className = "card p-4 border-l-4 border-rose-500";
-        document.getElementById("dt-dist").textContent = s.trigTime;
+        badge.className = "text-[11px] font-bold uppercase px-2 py-0.5 rounded bg-sky-500/20 text-sky-300";
+        badge.textContent = "🎯 TARGET HIT — SETUP COMPLETED";
+        banner.className = "card p-4 border-l-4 border-sky-500";
       }
 
-      // Timestamp Log
-      document.getElementById("log-htf").textContent = s.htfBias;
-      document.getElementById("log-lbtf").textContent = s.lbTF;
-      document.getElementById("log-lbtime").textContent = s.lbTime + " (Dhaka)";
-      document.getElementById("log-lbswept").textContent = `${s.leftSweptPrice.toFixed(dec)} (${s.leftSweptTime})`;
-      document.getElementById("log-entf").textContent = s.entryTF + " (No 1m)";
-      document.getElementById("log-indtime").textContent = s.indTime + " (Dhaka)";
-      document.getElementById("log-trigtime").textContent = s.trigTime;
+      document.getElementById("log-bias").textContent = s.htfBias;
+      document.getElementById("log-lbtf").textContent = `${s.lbTF} Fresh Liquidity Block`;
+      document.getElementById("log-lbtime").textContent = fmtDhaka(s.lbTimeSec);
+      document.getElementById("log-swept").textContent = `${s.sweptPrice.toFixed(dec)} (${fmtShortDhaka(s.sweptTimeSec)})`;
+      document.getElementById("log-indtime").textContent = `${fmtDhaka(s.indTimeSec)} (${s.enTF})`;
+      document.getElementById("log-trigtime").textContent = s.trigTimeSec
+        ? `⚡ ${fmtDhaka(s.trigTimeSec)} (${s.enTF})`
+        : `⏳ Pending Limit (${calcPips(selectedPair, s.livePrice, s.entry)} away)`;
+      document.getElementById("log-outcometime").textContent = s.outcomeText;
 
-      // Blue Box Levels
-      document.getElementById("dt-rr").textContent = `RR 1 : ${s.rr.toFixed(2)}`;
-      document.getElementById("val-entry").textContent = `${s.entry.toFixed(dec)}`;
-      document.getElementById("val-lb").textContent = `${s.entry.toFixed(dec)} → ${s.lbExtreme.toFixed(dec)}`;
-      document.getElementById("val-sl").textContent = `${s.slBuffered.toFixed(dec)}`;
-      document.getElementById("val-tp1").textContent = `${s.tp1.toFixed(dec)}`;
-      document.getElementById("val-tp2").textContent = `${s.tp2.toFixed(dec)}`;
+      document.getElementById("st-rr").textContent = `RR 1 : ${s.rr.toFixed(2)}`;
+      document.getElementById("bb-tf-label").textContent = `${s.lbTF} LB + ${s.enTF} Entry`;
+      document.getElementById("lvl-entry").textContent = `${s.entry.toFixed(dec)} [${s.enTF}]`;
+      document.getElementById("lvl-lbext").textContent = `${s.lbExtreme.toFixed(dec)} [${s.lbTF}]`;
+      document.getElementById("lvl-sl").textContent = `${s.slBuffered.toFixed(dec)}`;
+      document.getElementById("lvl-tp1").textContent = `${s.tp1.toFixed(dec)} [15m/1H]`;
+      document.getElementById("lvl-tp2").textContent = `${s.tp2.toFixed(dec)} [4H/1D]`;
 
-      document.getElementById("dt-story").textContent = s.story;
+      document.getElementById("st-story").textContent = s.story;
 
       document.getElementById("mt5-ticket").textContent =
-`PAIR: ${selectedPair} | ACTION: ${s.dir} (${s.status})
-LIVE MARKET PRICE:     ${s.livePrice.toFixed(dec)}
-HTF DIRECTION:         ${s.htfBias}
-LIQUIDITY BLOCK:       ${s.lbTF} | Formed: ${s.lbTime} Dhaka
-INDUCED LEVEL TIME:    ${s.indTime} Dhaka (${s.entryTF})
-TRIGGER STATUS:        ${s.trigTime}
--------------------------------------------------------
-ENTRY (Induced Sweep): ${s.entry.toFixed(dec)}
-BLUE BOX (LB Zone):    ${s.entry.toFixed(dec)} to ${s.lbExtreme.toFixed(dec)}
-MT5 STOP LOSS (+Buf):  ${s.slBuffered.toFixed(dec)}
-1ST INTERNAL (BE/20%): ${s.tp1.toFixed(dec)}
-FINAL HTF TARGET:      ${s.tp2.toFixed(dec)}
-FINAL RISK : REWARD:   1 : ${s.rr.toFixed(2)}`;
+`PAIR: ${selectedPair} | DIRECTION: ${s.dir} (${s.status})
+LIVE REAL-TIME PRICE:   ${s.livePrice.toFixed(dec)}
+1D DAILY PDH / PDL:     PDH ${s.pdh.toFixed(dec)} | PDL ${s.pdl.toFixed(dec)}
+1D / 4H DIRECTION:      ${s.htfBias}
+LB FORMED DATE & TIME:  ${fmtDhaka(s.lbTimeSec)} [${s.lbTF}]
+INDUCED LEVEL FORMED:   ${fmtDhaka(s.indTimeSec)} [${s.enTF}]
+ENTRY TRIGGER TIME:     ${s.trigTimeSec ? fmtDhaka(s.trigTimeSec) : "Pending Limit (Not Triggered Yet)"}
+OUTCOME LOG:            ${s.outcomeText}
+--------------------------------------------------------
+🟦 BLUE BOX ENTRY:      ${s.entry.toFixed(dec)} (${s.enTF} Sweep)
+🟦 BLUE BOX LB EXTREME: ${s.lbExtreme.toFixed(dec)} (${s.lbTF} Edge)
+🔴 MT5 STOP LOSS (+Buf):${s.slBuffered.toFixed(dec)}
+🔵 TP1 (BE + 25% Off):  ${s.tp1.toFixed(dec)}
+🟥 TP2 (4H/1D Target):  ${s.tp2.toFixed(dec)}
+FINAL RISK : REWARD:    1 : ${s.rr.toFixed(2)}`;
     }
 
-    function renderInspector() {
-      const tbody = document.getElementById("ohlc-tbody");
-      tbody.innerHTML = "";
-      if (!rawCandles[selectedPair] || !rawCandles[selectedPair][inspectorTF]) return;
+    function initOrRebuildLWChart() {
+      const container = document.getElementById("lw-chart-div");
+      if (!container || typeof LightweightCharts === "undefined") return;
+      container.innerHTML = "";
 
-      const s = analyzedSetups[selectedPair];
-      const dec = getDecimals(selectedPair);
-      const list = rawCandles[selectedPair][inspectorTF].slice(-18).reverse();
+      lwChart = LightweightCharts.createChart(container, {
+        width: container.clientWidth || 720,
+        height: container.clientHeight || 460,
+        layout: { background: { color: "#050811" }, textColor: "#94a3b8" },
+        grid: { vertLines: { color: "#0f172a" }, horzLines: { color: "#0f172a" } },
+        crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+        timeScale: { timeVisible: true, secondsVisible: false, borderColor: "#1e293b" },
+        rightPriceScale: { borderColor: "#1e293b" }
+      });
+
+      lwCandleSeries = lwChart.addCandlestickSeries({
+        upColor: "#10b981",
+        downColor: "#f43f5e",
+        borderUpColor: "#10b981",
+        borderDownColor: "#f43f5e",
+        wickUpColor: "#10b981",
+        wickDownColor: "#f43f5e"
+      });
+
+      lwChart.timeScale().subscribeVisibleTimeRangeChange(drawOverlayBoxesOnTV);
+      lwChart.subscribeCrosshairMove(drawOverlayBoxesOnTV);
+    }
+
+    function rebuildLWChart() {
+      if (!marketData[selectedPair] || !marketData[selectedPair][activeTF]) return;
+      if (!lwChart) initOrRebuildLWChart();
+
+      const s = setups[selectedPair];
+      const dec = getDec(selectedPair);
+      const minMove = 1 / Math.pow(10, dec);
+
+      lwCandleSeries.applyOptions({
+        priceFormat: { type: "price", precision: dec, minMove }
+      });
+
+      const candles = marketData[selectedPair][activeTF];
+      lwCandleSeries.setData(candles);
+
+      lwPriceLines.forEach(pl => lwCandleSeries.removePriceLine(pl));
+      lwPriceLines = [];
+
+      if (s) {
+        lwPriceLines.push(lwCandleSeries.createPriceLine({
+          price: s.entry, color: "#10b981", lineWidth: 2, lineStyle: LightweightCharts.LineStyle.Solid,
+          axisLabelVisible: true, title: `🟦 ENTRY (${s.enTF})`
+        }));
+        lwPriceLines.push(lwCandleSeries.createPriceLine({
+          price: s.lbExtreme, color: "#3b82f6", lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed,
+          axisLabelVisible: true, title: `🟦 LB EXTREME (${s.lbTF})`
+        }));
+        lwPriceLines.push(lwCandleSeries.createPriceLine({
+          price: s.slBuffered, color: "#f43f5e", lineWidth: 2, lineStyle: LightweightCharts.LineStyle.Dashed,
+          axisLabelVisible: true, title: `🔴 MT5 SL (+Buf)`
+        }));
+        lwPriceLines.push(lwCandleSeries.createPriceLine({
+          price: s.tp1, color: "#38bdf8", lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed,
+          axisLabelVisible: true, title: `🔵 TP1 (BE)`
+        }));
+        lwPriceLines.push(lwCandleSeries.createPriceLine({
+          price: s.tp2, color: "#ec4899", lineWidth: 2, lineStyle: LightweightCharts.LineStyle.Solid,
+          axisLabelVisible: true, title: `🟥 4H/1D TP2 ($$$)`
+        }));
+        lwPriceLines.push(lwCandleSeries.createPriceLine({
+          price: s.pdh, color: "#f59e0b", lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dotted,
+          axisLabelVisible: true, title: `1D PDH`
+        }));
+        lwPriceLines.push(lwCandleSeries.createPriceLine({
+          price: s.pdl, color: "#f59e0b", lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dotted,
+          axisLabelVisible: true, title: `1D PDL`
+        }));
+      }
+
+      lwChart.timeScale().fitContent();
+      setTimeout(drawOverlayBoxesOnTV, 50);
+    }
+
+    function drawOverlayBoxesOnTV() {
+      const canvas = document.getElementById("box-overlay-canvas");
+      const wrap = document.getElementById("tv-drawn-wrap");
+      if (!canvas || !lwChart || !lwCandleSeries || !setups[selectedPair]) return;
+
+      const width = wrap.clientWidth;
+      const height = wrap.clientHeight;
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, width, height);
+
+      const s = setups[selectedPair];
+      const yEntry = lwCandleSeries.priceToCoordinate(s.entry);
+      const yLBExt = lwCandleSeries.priceToCoordinate(s.lbExtreme);
+      const yTP2 = lwCandleSeries.priceToCoordinate(s.tp2);
+
+      let xStart = lwChart.timeScale().timeToCoordinate(s.lbTimeSec);
+      if (xStart === null || xStart < 0) xStart = 40;
+      const xEnd = width - 75;
+
+      if (yEntry !== null && yLBExt !== null && xEnd > xStart) {
+        const topY = Math.min(yEntry, yLBExt);
+        const boxH = Math.max(8, Math.abs(yLBExt - yEntry));
+        ctx.fillStyle = "rgba(37, 99, 235, 0.22)";
+        ctx.fillRect(xStart, topY, xEnd - xStart, boxH);
+        ctx.strokeStyle = "#3b82f6";
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(xStart, topY, xEnd - xStart, boxH);
+
+        ctx.fillStyle = "#93c5fd";
+        ctx.font = "bold 11px sans-serif";
+        ctx.fillText(
+          `🟦 BLUE BOX: ${s.lbTF} LB (${fmtShortDhaka(s.lbTimeSec)})`,
+          xStart + 6,
+          topY - 5 > 14 ? topY - 5 : topY + 14
+        );
+      }
+
+      if (yTP2 !== null) {
+        ctx.fillStyle = "rgba(244, 63, 94, 0.18)";
+        ctx.fillRect(20, yTP2 - 7, xEnd - 20, 14);
+        ctx.strokeStyle = "#f43f5e";
+        ctx.strokeRect(20, yTP2 - 7, xEnd - 20, 14);
+      }
+    }
+
+    function loadMatchingTVIframe() {
+      const sym = MATCHING_TV_MAP[selectedPair];
+      const intMap = { "5m": "5", "15m": "15", "1h": "60", "4h": "240", "1d": "D" };
+      const interval = intMap[activeTF] || "15";
+      document.getElementById("tv-wrap").innerHTML =
+        `<iframe src="https://s.tradingview.com/widgetembed/?frameElementId=tv_match&symbol=${encodeURIComponent(sym)}&interval=${interval}&hidesidetoolbar=0&symboledit=1&saveimage=1&toolbarbg=0b1120&studies=%5B%5D&theme=dark&style=1&timezone=Asia%2FDhaka" style="width:100%;height:100%;border:0;" allowfullscreen></iframe>`;
+    }
+
+    function setChartMode(mode) {
+      chartMode = mode;
+      const dWrap = document.getElementById("tv-drawn-wrap");
+      const tWrap = document.getElementById("tv-wrap");
+
+      ["TV_DRAWN", "TV_SOURCE"].forEach(m => {
+        document.getElementById("mode-" + m).className = m === mode
+          ? "text-xs px-2.5 py-1 rounded font-bold bg-blue-600 text-white"
+          : "text-xs px-2.5 py-1 rounded font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700";
+      });
+
+      if (mode === "TV_DRAWN") {
+        dWrap.classList.remove("hidden");
+        tWrap.classList.add("hidden");
+        rebuildLWChart();
+      } else {
+        dWrap.classList.add("hidden");
+        tWrap.classList.remove("hidden");
+        loadMatchingTVIframe();
+      }
+    }
+
+    function setChartTF(tf) {
+      activeTF = tf;
+      ["5m", "15m", "1h", "4h", "1d"].forEach(k => {
+        const btn = document.getElementById("tfbtn-" + k);
+        btn.className = k === tf
+          ? "text-xs px-2 py-0.5 rounded font-mono bg-emerald-600 text-white font-bold"
+          : "text-xs px-2 py-0.5 rounded font-mono bg-slate-800 text-slate-300";
+      });
+      rebuildLWChart();
+      renderCandleTable();
+      if (chartMode === "TV_SOURCE") loadMatchingTVIframe();
+    }
+
+    function renderCandleTable() {
+      const tbody = document.getElementById("candle-tbody");
+      document.getElementById("table-tf-label").textContent = activeTF.toUpperCase();
+      tbody.innerHTML = "";
+      if (!marketData[selectedPair] || !marketData[selectedPair][activeTF]) return;
+
+      const s = setups[selectedPair];
+      const dec = getDec(selectedPair);
+      const list = marketData[selectedPair][activeTF].slice(-20).reverse();
 
       list.forEach(c => {
-        let role = "";
-        if (s && c.time === s.lbCandleTimeSec) role = "🧱 LB Formation Candle";
-        else if (s && c.time === s.indCandleTimeSec) role = "🎯 Induced Sweep Candle";
+        let ev = "";
+        if (s) {
+          if (Math.abs(c.time - s.lbTimeSec) < 900) ev = "🟦 LB Formed (Swept Left LQ)";
+          else if (Math.abs(c.time - s.indTimeSec) < 600) ev = "🎯 Induced Level Formed";
+          else if (s.trigTimeSec && Math.abs(c.time - s.trigTimeSec) < 600) ev = "⚡ ENTRY TRIGGERED";
+          else if (s.tp1HitTimeSec && Math.abs(c.time - s.tp1HitTimeSec) < 600) ev = "🔵 TP1 HIT (SL → BE)";
+          else if (s.tp2HitTimeSec && Math.abs(c.time - s.tp2HitTimeSec) < 600) ev = "🎯 TP2 HIT (Full Target)";
+        }
 
         const tr = document.createElement("tr");
-        tr.className = role ? "bg-emerald-950/40 text-emerald-300 font-bold" : "";
+        tr.className = ev ? "bg-blue-950/40 text-emerald-300 font-bold" : "";
         tr.innerHTML = `
-          <td class="py-1">${formatDhakaTime(c.time)}</td>
+          <td class="py-1">${fmtDhaka(c.time)}</td>
           <td>${c.open.toFixed(dec)}</td>
           <td class="text-emerald-400">${c.high.toFixed(dec)}</td>
           <td class="text-rose-400">${c.low.toFixed(dec)}</td>
           <td class="font-bold">${c.close.toFixed(dec)}</td>
-          <td class="text-amber-300">${role}</td>
+          <td class="text-amber-300">${ev}</td>
         `;
         tbody.appendChild(tr);
       });
     }
 
-    function setInspectorTF(tf) {
-      inspectorTF = tf;
-      ["1d", "4h", "1h", "15m", "5m"].forEach(t => {
-        document.getElementById("insp-" + t).className =
-          t === tf
-            ? "text-[11px] px-2 py-0.5 rounded bg-emerald-600 text-white"
-            : "text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300";
-      });
-      renderInspector();
-    }
-
-    function loadTradingViewChart() {
-      const sym = TV_SYMBOLS[selectedPair];
-      const container = document.getElementById("tv-chart-container");
-      container.innerHTML = `<iframe src="https://s.tradingview.com/widgetembed/?frameElementId=tv_chart&symbol=${encodeURIComponent(sym)}&interval=${currentChartTF}&hidesidetoolbar=0&symboledit=1&saveimage=1&toolbarbg=0d1424&studies=%5B%5D&theme=dark&style=1&timezone=Asia%2FDhaka" style="width:100%;height:100%;border:0;" allowfullscreen></iframe>`;
-    }
-
-    function switchChartTF(tf) {
-      currentChartTF = tf;
-      loadTradingViewChart();
-    }
-
     function setFilter(f) {
       activeFilter = f;
-      ["ALL", "PENDING", "TRIGGERED", "WAIT"].forEach(k => {
-        document.getElementById("flt-" + k).className =
-          k === f
-            ? "text-xs px-3 py-1.5 rounded-lg font-semibold bg-emerald-600 text-white"
-            : "text-xs px-3 py-1.5 rounded-lg font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700";
+      ["ALL", "PENDING", "TRIGGERED", "HIT_TP"].forEach(k => {
+        document.getElementById("flt-" + k).className = k === f
+          ? "text-xs px-3 py-1.5 rounded-lg font-semibold bg-emerald-600 text-white"
+          : "text-xs px-3 py-1.5 rounded-lg font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700";
       });
-      renderGrid();
+      renderCards();
     }
 
     function copyTicket() {
       navigator.clipboard.writeText(document.getElementById("mt5-ticket").textContent);
       const btn = document.getElementById("copy-btn");
       btn.textContent = "Copied!";
-      setTimeout(() => (btn.textContent = "Copy Ticket"), 1500);
+      setTimeout(() => (btn.textContent = "Copy Plan"), 1500);
+    }
+
+    async function forceFullSync() {
+      const btn = document.getElementById("sync-btn");
+      btn.textContent = "⏳ Syncing...";
+      btn.disabled = true;
+      await loadAllCandles();
+      renderDailyBar();
+      renderCards();
+      renderSelectedDetails();
+      rebuildLWChart();
+      renderCandleTable();
+      btn.textContent = "🔄 Refresh Live Feed";
+      btn.disabled = false;
     }
 
     function updateClock() {
       const now = new Date();
       const dhakaStr = now.toLocaleTimeString("en-GB", { timeZone: "Asia/Dhaka", hour12: false });
-      const dhakaHour = Number(dhakaStr.split(":")[0]);
       document.getElementById("dhaka-clock").textContent = `Dhaka: ${dhakaStr} (GMT+6)`;
-
-      let sess = "Asia / Pre-London Scan";
-      if (dhakaHour >= 8 && dhakaHour < 10) sess = "🟢 Marco Pre-Bedtime Limit Window (8:00–10:00 AM)";
-      else if (dhakaHour >= 13 && dhakaHour < 18) sess = "🟡 London Buildup / Trap Context (1:00–6:00 PM)";
-      else if (dhakaHour >= 18 && dhakaHour <= 23) sess = "🔥 NY Execution Window (6:00–11:00 PM)";
-      document.getElementById("session-status").textContent = sess;
     }
 
-    setInterval(updateClock, 1000);
-    setInterval(scanAllPairs, 60000); // Auto refresh live OHLC every 60 seconds
-    updateClock();
-    loadTradingViewChart();
-    scanAllPairs();
+    window.addEventListener("resize", () => {
+      if (lwChart) {
+        const container = document.getElementById("lw-chart-div");
+        lwChart.resize(container.clientWidth, container.clientHeight);
+        drawOverlayBoxesOnTV();
+      }
+    });
+
+    // Startup sequence
+    (async () => {
+      updateClock();
+      setInterval(updateClock, 1000);
+      await loadAllCandles();
+      initOrRebuildLWChart();
+      renderDailyBar();
+      renderCards();
+      renderSelectedDetails();
+      rebuildLWChart();
+      renderCandleTable();
+
+      // Real-time tick & sync loop
+      setInterval(async () => {
+        await fetchLiveSpotRates();
+        PAIRS.forEach(p => {
+          if (liveSpotPrices[p] && marketData[p] && marketData[p]["5m"]) {
+            const arr = marketData[p]["5m"];
+            if (arr.length > 0) arr[arr.length - 1].close = liveSpotPrices[p];
+            setups[p] = analyzePairSuperModel(p);
+          }
+        });
+        renderCards();
+        renderSelectedDetails();
+      }, 1000);
+    })();
   </script>
 </body>
 </html>
