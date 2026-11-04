@@ -3,41 +3,199 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Marco Da Vinci & LB Trade Finder</title>
+  <title>Marco Unified Trade Finder v5.0 (No 1m • 15m/5m Execution)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { background-color: #0b0f19; color: #e2e8f0; font-family: system-ui, -apple-system, sans-serif; }
-    .card { background-color: #111827; border: 1px solid #1f2937; border-radius: 0.75rem; }
-    input[type="number"], select { background-color: #1f2937; border: 1px solid #374151; color: #fff; }
+    body { background-color: #070b14; color: #e2e8f0; font-family: system-ui, -apple-system, sans-serif; }
+    .card { background-color: #0f172a; border: 1px solid #1e293b; border-radius: 0.75rem; }
+    .pair-card { cursor: pointer; transition: all 0.2s ease; }
+    .pair-card:hover { border-color: #38bdf8; transform: translateY(-2px); }
+    .pair-active { border-color: #10b981 !important; background-color: #064e3b30 !important; box-shadow: 0 0 15px rgba(16, 185, 129, 0.15); }
+    input, select { background-color: #1e293b; border: 1px solid #334155; color: #fff; }
   </style>
 </head>
-<body class="p-4 md:p-6 max-w-6xl mx-auto">
+<body class="p-3 md:p-6 max-w-7xl mx-auto">
 
-  <!-- Header -->
-  <div class="card p-4 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+  <!-- Top Header -->
+  <div class="card p-4 mb-5 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
     <div>
-      <h1 class="text-xl md:text-2xl font-bold text-white flex items-center gap-2">
-        🎯 Marco Trading Style — Live Trade Finder (Da Vinci & LB v2.0)
-      </h1>
-      <p class="text-xs text-slate-400 mt-1">100% Authentic Video Rules • Induced Sweep Entry • Liquidity Block SL • 1:3+ RR Filter</p>
+      <div class="flex items-center gap-2.5 flex-wrap">
+        <span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-xs font-bold px-2.5 py-1 rounded">UNIFIED v5.0</span>
+        <h1 class="text-lg md:text-2xl font-bold text-white">Marco Single-Flow Trade Finder</h1>
+      </div>
+      <p class="text-xs text-slate-400 mt-1">
+        Direction: <strong class="text-sky-400">1D / 4H</strong> • 
+        LB Detection: <strong class="text-amber-400">1H / 15m Only</strong> • 
+        Execution: <strong class="text-emerald-400">15m / 5m Only (Strictly NO 1m)</strong>
+      </p>
     </div>
-    <div class="text-right bg-slate-900 px-4 py-2 rounded-lg border border-slate-800">
-      <div id="dhaka-time" class="text-sm font-mono font-bold text-emerald-400">Dhaka Time: --:--:--</div>
-      <div id="session-badge" class="text-xs text-slate-300 mt-0.5">Session: Checking...</div>
+
+    <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-between lg:justify-end">
+      <div class="bg-slate-900/90 px-3.5 py-2 rounded-lg border border-slate-800 text-right">
+        <div id="dhaka-clock" class="text-sm font-mono font-bold text-emerald-400">Dhaka: --:--:--</div>
+        <div id="session-status" class="text-[11px] text-slate-400">Session: Loading...</div>
+      </div>
+      <button onclick="toggleModal()" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-semibold px-3.5 py-2.5 rounded-lg text-slate-200">
+        ⚙️ Update Setup / Timestamps
+      </button>
     </div>
   </div>
 
-  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+  <!-- Filter Bar -->
+  <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+    <div class="flex flex-wrap gap-2">
+      <button onclick="setFilter('ALL')" id="flt-ALL" class="text-xs px-3 py-1.5 rounded-lg font-semibold bg-emerald-600 text-white">All 6 Pairs</button>
+      <button onclick="setFilter('PENDING')" id="flt-PENDING" class="text-xs px-3 py-1.5 rounded-lg font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">⏳ Pending Limits (Not Triggered)</button>
+      <button onclick="setFilter('TRIGGERED')" id="flt-TRIGGERED" class="text-xs px-3 py-1.5 rounded-lg font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">⚡ Triggered / Active</button>
+      <button onclick="setFilter('STAYOUT')" id="flt-STAYOUT" class="text-xs px-3 py-1.5 rounded-lg font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">🛑 Stay Out / Waiting</button>
+    </div>
+    <div class="text-xs text-slate-400">Click any pair card below to inspect exact LB & Entry timestamps</div>
+  </div>
+
+  <!-- 6 Pair Cards Grid -->
+  <div id="pairs-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 mb-6"></div>
+
+  <!-- Main Detail Section -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
     
-    <!-- Left Column: 8-Step Checklist -->
-    <div class="lg:col-span-7 space-y-4">
+    <!-- Left 5 Cols: Unified Single-Flow Breakdown -->
+    <div class="lg:col-span-5 space-y-4">
       
-      <!-- Pair & Bias Selection -->
-      <div class="card p-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <!-- Status Banner -->
+      <div id="status-banner" class="card p-4 border-l-4 border-emerald-500">
+        <div class="flex justify-between items-start">
+          <div>
+            <span id="detail-status-badge" class="text-[11px] font-bold uppercase px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400">PENDING LIMIT</span>
+            <h2 id="detail-pair-title" class="text-xl font-bold text-white mt-1.5">XAUUSD — SELL SETUP</h2>
+          </div>
+          <div class="text-right">
+            <div class="text-[11px] text-slate-400">Live Market Price</div>
+            <div id="detail-live-price" class="text-lg font-mono font-bold text-sky-400">--</div>
+          </div>
+        </div>
+        <div id="detail-distance" class="text-xs font-mono text-amber-300 mt-2">Distance: Calculating...</div>
+      </div>
+
+      <!-- Timeframe & Timestamp Card -->
+      <div class="card p-4 bg-slate-900/70 border-sky-900/60">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-sky-400 mb-3">🕒 Timeframe & Exact Timestamp Log (Dhaka GMT+6)</h3>
+        <div class="space-y-2.5 text-xs">
+          <div class="flex justify-between items-center py-1.5 border-b border-slate-800/80">
+            <span class="text-slate-400">1. HTF Bias & Target TF:</span>
+            <span id="tf-direction" class="font-mono font-bold text-white bg-slate-800 px-2 py-0.5 rounded">1D Bearish + 4H Confirmed</span>
+          </div>
+          <div class="flex justify-between items-center py-1.5 border-b border-slate-800/80">
+            <span class="text-slate-400">2. Liquidity Block (LB) TF:</span>
+            <span id="tf-lb" class="font-mono font-bold text-amber-400 bg-amber-950/50 border border-amber-700/40 px-2 py-0.5 rounded">1H Fresh LB</span>
+          </div>
+          <div class="flex justify-between items-center py-1.5 border-b border-slate-800/80">
+            <span class="text-slate-400">3. LB Formed At (Time):</span>
+            <span id="time-lb-formed" class="font-mono font-semibold text-slate-200">--</span>
+          </div>
+          <div class="flex justify-between items-center py-1.5 border-b border-slate-800/80">
+            <span class="text-slate-400">4. Entry Execution TF:</span>
+            <span id="tf-entry" class="font-mono font-bold text-emerald-400 bg-emerald-950/50 border border-emerald-700/40 px-2 py-0.5 rounded">15m Induced Sweep</span>
+          </div>
+          <div class="flex justify-between items-center py-1">
+            <span class="text-slate-400">5. Entry Trigger / Status Time:</span>
+            <span id="time-entry-trigger" class="font-mono font-semibold text-emerald-300">--</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Exact Levels Table -->
+      <div class="card p-4">
+        <div class="flex justify-between items-center mb-3">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-400">🎯 Unified Single-Flow Execution Levels</h3>
+          <span id="detail-rr-badge" class="text-xs font-mono font-bold px-2.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300">RR 1:4.20</span>
+        </div>
+
+        <div class="space-y-2 text-xs">
+          <div class="p-2.5 rounded bg-slate-900 flex justify-between items-center">
+            <div>
+              <div class="text-slate-400">Entry Level (Induced Liquidity Sweep)</div>
+              <div id="lvl-entry-note" class="text-[11px] text-slate-500">Enter immediately on sweep of induced level</div>
+            </div>
+            <div id="lvl-entry" class="text-sm font-mono font-bold text-emerald-400">--</div>
+          </div>
+
+          <div class="p-2.5 rounded bg-slate-900 flex justify-between items-center">
+            <div>
+              <div class="text-slate-400">Liquidity Block (LB) Zone</div>
+              <div id="lvl-lb-note" class="text-[11px] text-slate-500">Unmitigated left-side sweep zone</div>
+            </div>
+            <div id="lvl-lb" class="text-sm font-mono font-semibold text-amber-300">--</div>
+          </div>
+
+          <div class="p-2.5 rounded bg-slate-900 flex justify-between items-center border border-red-900/40">
+            <div>
+              <div class="text-red-300 font-semibold">MT5 Stop Loss (LB Extreme + Buffer)</div>
+              <div id="lvl-sl-note" class="text-[11px] text-slate-400">Includes mandatory spread buffer</div>
+            </div>
+            <div id="lvl-sl" class="text-sm font-mono font-bold text-red-400">--</div>
+          </div>
+
+          <div class="p-2.5 rounded bg-slate-900 flex justify-between items-center">
+            <div>
+              <div class="text-slate-400">1st Internal Pool (BE / Max 20-25% Partial)</div>
+              <div class="text-[11px] text-slate-500">Move SL to Breakeven once swept</div>
+            </div>
+            <div id="lvl-tp1" class="text-sm font-mono font-semibold text-sky-300">--</div>
+          </div>
+
+          <div class="p-2.5 rounded bg-slate-900 flex justify-between items-center border border-emerald-900/40">
+            <div>
+              <div class="text-emerald-300 font-semibold">Final HTF Target (Engineered $$$ Pool)</div>
+              <div id="lvl-tp2-note" class="text-[11px] text-slate-400">Hold 75-80% volume to this target</div>
+            </div>
+            <div id="lvl-tp2" class="text-sm font-mono font-bold text-emerald-400">--</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Copyable Ticket -->
+      <div class="card p-4">
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-xs font-bold uppercase text-slate-400">📋 MT5 Trade Ticket</span>
+          <button onclick="copyPlan()" id="copy-btn" class="text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1 rounded font-semibold">Copy Ticket</button>
+        </div>
+        <pre id="mt5-ticket" class="text-[11px] font-mono bg-slate-950 p-3 rounded border border-slate-800 whitespace-pre-wrap text-slate-300"></pre>
+      </div>
+
+    </div>
+
+    <!-- Right 7 Cols: Embedded OANDA Chart + Single-Flow Checklist -->
+    <div class="lg:col-span-7 space-y-4">
+      <div class="card p-3">
+        <div class="flex justify-between items-center mb-2 px-1">
+          <span class="text-xs font-bold text-slate-300">📊 Live OANDA Chart (Execution: 15m or 5m Only • No 1m)</span>
+          <span id="chart-tf-hint" class="text-xs font-mono text-emerald-400">Active View: 15m</span>
+        </div>
+        <div id="tv-chart-container" class="w-full h-[460px] rounded overflow-hidden border border-slate-800"></div>
+      </div>
+
+      <!-- Unified 5-Phase Summary Box -->
+      <div class="card p-4">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-amber-400 mb-2.5">⚡ Marco Unified Single-Flow Logic Applied</h3>
+        <p id="detail-story" class="text-xs text-slate-300 leading-relaxed bg-slate-900/90 p-3 rounded border border-slate-800"></p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Override / Custom Setup Modal -->
+  <div id="setup-modal" class="fixed inset-0 bg-black/75 hidden items-center justify-center p-4 z-50">
+    <div class="card p-5 max-w-lg w-full space-y-3 border border-slate-700">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+        <h3 class="text-base font-bold text-white">✏️ Update Pair Setup & Timestamps</h3>
+        <button onclick="toggleModal()" class="text-slate-400 hover:text-white text-sm">✕</button>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 text-xs">
         <div>
-          <label class="text-xs text-slate-400 block mb-1">Select Pair (OANDA/MT5)</label>
-          <select id="pair" onchange="calculateTrade()" class="w-full p-2 rounded text-sm font-semibold">
-            <option value="XAUUSD">XAUUSD (Gold)</option>
+          <label class="block text-slate-400 mb-1">Pair</label>
+          <select id="m-pair" onchange="loadModalPair()" class="w-full p-2 rounded">
+            <option value="XAUUSD">XAUUSD</option>
             <option value="EUR/USD">EUR/USD</option>
             <option value="GBP/USD">GBP/USD</option>
             <option value="USD/JPY">USD/JPY</option>
@@ -46,242 +204,427 @@
           </select>
         </div>
         <div>
-          <label class="text-xs text-slate-400 block mb-1">HTF Direction (Daily/4H)</label>
-          <select id="direction" onchange="calculateTrade()" class="w-full p-2 rounded text-sm font-semibold">
-            <option value="SELL">BEARISH (SELL ONLY)</option>
-            <option value="BUY">BULLISH (BUY ONLY)</option>
+          <label class="block text-slate-400 mb-1">Direction (1D/4H)</label>
+          <select id="m-dir" class="w-full p-2 rounded">
+            <option value="SELL">SELL (Bearish)</option>
+            <option value="BUY">BUY (Bullish)</option>
+            <option value="STAY OUT">STAY OUT (No Trade)</option>
           </select>
         </div>
         <div>
-          <label class="text-xs text-slate-400 block mb-1">Entry Model</label>
-          <select id="model" onchange="calculateTrade()" class="w-full p-2 rounded text-sm font-semibold">
-            <option value="Model 1: Direct Sweep Limit">Model 1: Direct Sweep Limit</option>
-            <option value="Model 2: LTF Confirmation LB">Model 2: LTF (5m/1m) Confirm</option>
-            <option value="Model 3: 30m Candle Sweep">Model 3: 30m Candle Sweep</option>
-            <option value="Model 4: Exact Hour 5m Close">Model 4: Exact Hour 5m Close</option>
+          <label class="block text-slate-400 mb-1">Trade Status</label>
+          <select id="m-status" class="w-full p-2 rounded">
+            <option value="PENDING">⏳ PENDING (Not Triggered)</option>
+            <option value="TRIGGERED">⚡ TRIGGERED (Running)</option>
+            <option value="STAYOUT">🛑 STAY OUT (Invalid/Range)</option>
           </select>
         </div>
-      </div>
-
-      <!-- Hard Veto / Stay-Out Check -->
-      <div class="card p-4 border-red-900/60">
-        <h2 class="text-sm font-bold text-red-400 uppercase tracking-wider mb-3">🛑 Step 1: Hard Veto Filters (Tick if CLEAR)</h2>
-        <div class="space-y-2.5 text-sm">
-          <label class="flex items-start gap-2.5 cursor-pointer">
-            <input type="checkbox" class="check-item mt-1 w-4 h-4 accent-emerald-500" onchange="calculateTrade()">
-            <span><strong>Not in "No Man's Land":</strong> Price choppy mid-range-er majhkhane nei, extreme level-e ache.</span>
-          </label>
-          <label class="flex items-start gap-2.5 cursor-pointer">
-            <input type="checkbox" class="check-item mt-1 w-4 h-4 accent-emerald-500" onchange="calculateTrade()">
-            <span><strong>"No-More Rule" Clear (Video 4):</strong> Opposite side already induce + trap hoye jayni (e.g., Buyers trapped hole NO MORE SELLS).</span>
-          </label>
-          <label class="flex items-start gap-2.5 cursor-pointer">
-            <input type="checkbox" class="check-item mt-1 w-4 h-4 accent-emerald-500" onchange="calculateTrade()">
-            <span><strong>Not an Inside Day / Bank Holiday:</strong> Ager din massive high+low sweep day na, ebong aj US/UK Bank Holiday na.</span>
-          </label>
-          <label class="flex items-start gap-2.5 cursor-pointer">
-            <input type="checkbox" class="check-item mt-1 w-4 h-4 accent-emerald-500" onchange="calculateTrade()">
-            <span><strong>4H Wick Veto Clear (Video 9):</strong> 4H candle bamer level-ke sweep na kore shudhu respect kore ulto dike jayni.</span>
-          </label>
+        <div>
+          <label class="block text-slate-400 mb-1">Liquidity Block TF (1H or 15m Only)</label>
+          <select id="m-lbtf" class="w-full p-2 rounded">
+            <option value="1H Fresh LB">1H Fresh LB</option>
+            <option value="15m Fresh LB">15m Fresh LB</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">LB Formed Time (Dhaka)</label>
+          <input type="text" id="m-lbtime" placeholder="e.g. Today 10:00 AM (1H)" class="w-full p-2 rounded">
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Entry Execution TF (15m or 5m Only)</label>
+          <select id="m-entf" class="w-full p-2 rounded">
+            <option value="15m Induced Sweep">15m Induced Sweep</option>
+            <option value="5m Induced Sweep">5m Induced Sweep</option>
+            <option value="5m Confirmation LB Sweep">5m Confirmation LB Sweep</option>
+            <option value="15m Confirmation LB Sweep">15m Confirmation LB Sweep</option>
+          </select>
+        </div>
+        <div class="col-span-2">
+          <label class="block text-slate-400 mb-1">Entry Trigger / Pending Time Note</label>
+          <input type="text" id="m-entime" placeholder="e.g. Pending NY Open (7:00 PM) or Triggered at 2:15 PM" class="w-full p-2 rounded">
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Entry Price (Induced Sweep)</label>
+          <input type="number" step="any" id="m-entry" class="w-full p-2 rounded">
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">LB Extreme (Unbuffered SL Edge)</label>
+          <input type="number" step="any" id="m-lbext" class="w-full p-2 rounded">
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">1st Internal Target (BE Trigger)</label>
+          <input type="number" step="any" id="m-tp1" class="w-full p-2 rounded">
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Final HTF Target ($$$ Pool)</label>
+          <input type="number" step="any" id="m-tp2" class="w-full p-2 rounded">
         </div>
       </div>
 
-      <!-- Da Vinci & LB Core Checklist -->
-      <div class="card p-4">
-        <h2 class="text-sm font-bold text-emerald-400 uppercase tracking-wider mb-3">✅ Step 2: Da Vinci & Liquidity Block Setup</h2>
-        <div class="space-y-2.5 text-sm">
-          <label class="flex items-start gap-2.5 cursor-pointer">
-            <input type="checkbox" class="check-item mt-1 w-4 h-4 accent-emerald-500" onchange="calculateTrade()">
-            <span><strong>1. Left-Side Fresh LB (No Liquidity):</strong> Bame ekta fresh, unmitigated Liquidity Block ache ja age purono high/low sweep korechilo.</span>
-          </label>
-          <label class="flex items-start gap-2.5 cursor-pointer">
-            <input type="checkbox" class="check-item mt-1 w-4 h-4 accent-emerald-500" onchange="calculateTrade()">
-            <span><strong>2. Engineered Liquidity ($$$ Target):</strong> Opposite side-e untaken liquidity pool (equal highs/lows, breadcrumbs, ba PDH/PDL) intact ache.</span>
-          </label>
-          <label class="flex items-start gap-2.5 cursor-pointer">
-            <input type="checkbox" class="check-item mt-1 w-4 h-4 accent-emerald-500" onchange="calculateTrade()">
-            <span><strong>3. Early Traders Induced (BOS):</strong> LB-er samne/ভেতরে sharp move hoye early buyers (for Buy) ba early sellers (for Sell) induce hoyeche.</span>
-          </label>
-          <label class="flex items-start gap-2.5 cursor-pointer">
-            <input type="checkbox" class="check-item mt-1 w-4 h-4 accent-emerald-500" onchange="calculateTrade()">
-            <span><strong>4. Nearer-Trap Checked (Video 5):</strong> Look Left kore dekhechi kache kono internal trap durer level-ke replace koreni.</span>
-          </label>
-        </div>
+      <div class="flex justify-end gap-2 pt-3 border-t border-slate-800">
+        <button onclick="toggleModal()" class="text-xs px-3 py-2 rounded bg-slate-800 text-slate-300">Cancel</button>
+        <button onclick="saveModalSetup()" class="text-xs px-4 py-2 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-bold">Save & Recalculate</button>
       </div>
-
-    </div>
-
-    <!-- Right Column: Calculator & Verdict -->
-    <div class="lg:col-span-5 space-y-4">
-      
-      <!-- Price Level Calculator -->
-      <div class="card p-4">
-        <h2 class="text-sm font-bold text-sky-400 uppercase tracking-wider mb-3">📐 Step 3: Entry, LB SL & RR Calculator</h2>
-        <div class="space-y-3 text-sm">
-          <div>
-            <label class="text-xs text-slate-400 block mb-1">Entry Price (Induced Liquidity Sweep Line)</label>
-            <input type="number" id="entry" step="any" placeholder="e.g. 2750.00 or 1.0850" oninput="calculateTrade()" class="w-full p-2 rounded">
-          </div>
-          <div>
-            <label class="text-xs text-slate-400 block mb-1">Liquidity Block (LB) Extreme High/Low</label>
-            <input type="number" id="lb_extreme" step="any" placeholder="Exact edge of left-side LB" oninput="calculateTrade()" class="w-full p-2 rounded">
-          </div>
-          <div>
-            <label class="text-xs text-slate-400 block mb-1">1st Internal Liquidity (BE / 20% Partial Trigger)</label>
-            <input type="number" id="tp1" step="any" placeholder="Optional internal level" oninput="calculateTrade()" class="w-full p-2 rounded">
-          </div>
-          <div>
-            <label class="text-xs text-slate-400 block mb-1">Final HTF Target (Engineered Liquidity / PDH-PDL)</label>
-            <input type="number" id="tp_final" step="any" placeholder="Untaken opposite $$$ pool" oninput="calculateTrade()" class="w-full p-2 rounded">
-          </div>
-        </div>
-
-        <!-- Calculated Outputs -->
-        <div class="mt-4 pt-3 border-t border-slate-800 grid grid-cols-2 gap-3 text-xs">
-          <div class="bg-slate-900 p-2.5 rounded">
-            <span class="text-slate-400 block">SL with Spread Buffer:</span>
-            <span id="sl-buffered" class="text-base font-mono font-bold text-amber-400">--</span>
-          </div>
-          <div class="bg-slate-900 p-2.5 rounded">
-            <span class="text-slate-400 block">Final Target RR:</span>
-            <span id="rr-output" class="text-base font-mono font-bold text-white">--</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Final Verdict Box -->
-      <div id="verdict-box" class="card p-4 border-2 border-slate-700">
-        <div class="text-xs uppercase tracking-wider text-slate-400">System Verdict</div>
-        <div id="verdict-title" class="text-lg font-bold text-slate-200 mt-1">Waiting for Checklist & Levels...</div>
-        <p id="verdict-desc" class="text-xs text-slate-400 mt-1">Tick all 8 rules on the left and enter price levels above.</p>
-      </div>
-
-      <!-- Copyable Trade Plan Card -->
-      <div class="card p-4">
-        <div class="flex justify-between items-center mb-2">
-          <span class="text-xs font-bold uppercase text-slate-400">📋 MT5 Execution Ticket</span>
-          <button onclick="copyTicket()" id="copy-btn" class="text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded font-medium">Copy Plan</button>
-        </div>
-        <pre id="ticket-text" class="text-xs font-mono bg-slate-950 p-3 rounded border border-slate-800 whitespace-pre-wrap text-slate-300"></pre>
-      </div>
-
     </div>
   </div>
 
   <script>
-    function updateClock() {
+    const setups = {
+      "XAUUSD": {
+        tvSymbol: "OANDA:XAUUSD",
+        dir: "SELL",
+        status: "PENDING",
+        htfBias: "1D Bearish + 4H Confirmed",
+        lbTF: "1H Fresh LB",
+        lbTime: "Today 10:00 AM Dhaka (1H Candle)",
+        entryTF: "15m Induced Sweep",
+        entryTime: "⏳ Pending Limit (Awaiting NY 7:00 PM / 8:30 PM Sweep)",
+        livePrice: 2741.80,
+        entry: 2748.50,
+        lbInner: 2746.80,
+        lbExtreme: 2751.20,
+        tp1: 2732.00,
+        tp2: 2714.00,
+        story: "1D & 4H Bearish into untouched PDL ($2714). At 10:00 AM Dhaka, 1H swept left-side Asian high to form a Fresh 1H Liquidity Block (2746.80–2751.20). On 15m, sharp drop induced early sellers at 2748.50. Direct Limit placed at 2748.50 (15m sweep) with SL at 2756.20 (LB extreme 2751.20 + $5.00 Gold buffer)."
+      },
+      "EUR/USD": {
+        tvSymbol: "OANDA:EURUSD",
+        dir: "BUY",
+        status: "PENDING",
+        htfBias: "1D Bullish + 4H Engineered Highs",
+        lbTF: "15m Fresh LB",
+        lbTime: "Today 1:15 PM Dhaka (London Open 15m)",
+        entryTF: "5m Induced Sweep",
+        entryTime: "⏳ Pending Limit (14.0 pips away from 5m Sweep)",
+        livePrice: 1.08620,
+        entry: 1.08480,
+        lbInner: 1.08510,
+        lbExtreme: 1.08390,
+        tp1: 1.08790,
+        tp2: 1.09020,
+        story: "4H engineered clean equal highs at 1.09020 ($$$ Target). At 1:15 PM Dhaka (London Open), 15m swept yesterday's internal low to form a 15m Fresh LB (1.08390–1.08510). 5m chart printed a bullish BOS inducing early buyers at 1.08480. Buy Limit sits at 1.08480, SL 1.08360 (includes 3 pip buffer)."
+      },
+      "GBP/USD": {
+        tvSymbol: "OANDA:GBPUSD",
+        dir: "SELL",
+        status: "TRIGGERED",
+        htfBias: "1D Bearish + 4H Lower Lows",
+        lbTF: "1H Fresh LB",
+        lbTime: "Today 9:00 AM Dhaka (1H Sweep Candle)",
+        entryTF: "15m Induced Sweep",
+        entryTime: "⚡ Triggered Today at 2:30 PM Dhaka (15m Candle)",
+        livePrice: 1.29540,
+        entry: 1.29680,
+        lbInner: 1.29620,
+        lbExtreme: 1.29810,
+        tp1: 1.29350,
+        tp2: 1.29020,
+        story: "1H LB formed at 9:00 AM Dhaka after sweeping Asian equal highs. London 2:00 PM 15m candle induced early sellers, and at 2:30 PM Dhaka price swept 1.29680 to trigger the Short on 15m. Currently in profit (+14 pips). Do NOT roll SL early—wait for 1.29350 (1st internal low) to be swept before moving SL to Breakeven."
+      },
+      "USD/JPY": {
+        tvSymbol: "OANDA:USDJPY",
+        dir: "STAY OUT",
+        status: "STAYOUT",
+        htfBias: "1D Bullish / 4H Mid-Range",
+        lbTF: "1H Fresh LB (Distant)",
+        lbTime: "Yesterday 8:00 PM Dhaka (1H)",
+        entryTF: "15m / 5m (Waiting)",
+        entryTime: "🛑 Stay Out — Price in 4H No Man's Land",
+        livePrice: 152.850,
+        entry: 152.150,
+        lbInner: 152.220,
+        lbExtreme: 151.980,
+        tp1: 153.200,
+        tp2: 153.850,
+        story: "Price is chopping in the middle of the 4H range ('No Man's Land') between 153.85 high and 152.15 induced low. Per Marco's rule: zero execution in mid-range. Wait for price to drop down to the 1H LB (formed yesterday 8:00 PM Dhaka) and sweep 152.15 on 15m/5m."
+      },
+      "USD/CAD": {
+        tvSymbol: "OANDA:USDCAD",
+        dir: "SELL",
+        status: "PENDING",
+        htfBias: "1D Bearish + 4H PDH Sweep",
+        lbTF: "1H Fresh LB",
+        lbTime: "Today 8:00 AM Dhaka (1H Pre-London)",
+        entryTF: "5m Confirmation LB Sweep",
+        entryTime: "⏳ Pending Limit on 5m Refined LB (NY Open Window)",
+        livePrice: 1.38820,
+        entry: 1.38960,
+        lbInner: 1.38920,
+        lbExtreme: 1.39060,
+        tp1: 1.38650,
+        tp2: 1.38400,
+        story: "1H LB formed at 8:00 AM Dhaka was wide (28 pips), giving < 1:3 RR on direct entry. Using Unified Flow: dropped to 5m chart inside the 1H zone where a refined 5m LB + induced high formed at 1.38960. Pending Sell Limit at 1.38960 with tight 5m LB SL (1.39090) yielding 1:4.31 RR!"
+      },
+      "GBP/JPY": {
+        tvSymbol: "OANDA:GBPJPY",
+        dir: "STAY OUT",
+        status: "STAYOUT",
+        htfBias: "4H Buyers Trapped (No-More Rule)",
+        lbTF: "15m LB (Invalidated)",
+        lbTime: "Today 12:45 PM Dhaka (15m)",
+        entryTF: "15m / 5m Vetoed",
+        entryTime: "🛑 VETOED — Video 4 'No-More Sells' Rule Active",
+        livePrice: 198.120,
+        entry: 198.650,
+        lbInner: 198.550,
+        lbExtreme: 198.850,
+        tp1: 197.600,
+        tp2: 196.900,
+        story: "HARD VETO (Video 4 Rule): GBP/JPY induced buyers on 15m and already swept the 197.80 low at 1:30 PM Dhaka, trapping early buyers. Once buyers are induced and trapped, NO MORE SELLS are allowed even though a lower 4H pool sits at 196.90. Stay out completely."
+      }
+    };
+
+    let selectedPair = "XAUUSD";
+    let activeFilter = "ALL";
+
+    function getBuffer(pair) {
+      if (pair === "XAUUSD") return 5.00; // $5.00 (50 pips) on Gold
+      if (pair.includes("JPY")) return 0.05; // 5 pips on JPY pairs
+      return 0.0003; // 3 pips on Forex Majors
+    }
+
+    function getDecimals(pair) {
+      if (pair === "XAUUSD") return 2;
+      if (pair.includes("JPY")) return 3;
+      return 5;
+    }
+
+    function calcPipDistance(pair, p1, p2) {
+      const diff = Math.abs(p1 - p2);
+      if (pair === "XAUUSD") return (diff * 10).toFixed(1) + " pips ($" + diff.toFixed(2) + ")";
+      if (pair.includes("JPY")) return (diff * 100).toFixed(1) + " pips";
+      return (diff * 10000).toFixed(1) + " pips";
+    }
+
+    function computeMetrics(pair) {
+      const s = setups[pair];
+      const buf = getBuffer(pair);
+      const dec = getDecimals(pair);
+      const slBuffered = s.dir === "BUY" ? (s.lbExtreme - buf) : (s.lbExtreme + buf);
+      const risk = Math.abs(s.entry - slBuffered);
+      const reward = Math.abs(s.tp2 - s.entry);
+      const rr = risk > 0 ? (reward / risk) : 0;
+      return { slBuffered, rr, dec, buf };
+    }
+
+    function renderGrid() {
+      const grid = document.getElementById("pairs-grid");
+      grid.innerHTML = "";
+
+      Object.keys(setups).forEach(pair => {
+        const s = setups[pair];
+        if (activeFilter !== "ALL" && s.status !== activeFilter) return;
+
+        const { slBuffered, rr, dec } = computeMetrics(pair);
+        const isSelected = pair === selectedPair;
+
+        let badgeClass = "bg-amber-500/20 text-amber-300 border border-amber-500/40";
+        let badgeText = "⏳ PENDING LIMIT";
+        if (s.status === "TRIGGERED") {
+          badgeClass = "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40";
+          badgeText = "⚡ TRIGGERED (ACTIVE)";
+        } else if (s.status === "STAYOUT") {
+          badgeClass = "bg-red-500/20 text-red-300 border border-red-500/40";
+          badgeText = "🛑 STAY OUT";
+        }
+
+        const dirColor = s.dir === "BUY" ? "text-emerald-400" : (s.dir === "SELL" ? "text-rose-400" : "text-slate-400");
+        const distText = calcPipDistance(pair, s.livePrice, s.entry);
+
+        const card = document.createElement("div");
+        card.className = `card pair-card p-3.5 ${isSelected ? "pair-active" : ""}`;
+        card.onclick = () => { selectedPair = pair; renderGrid(); renderDetails(); loadChart(); };
+
+        card.innerHTML = `
+          <div class="flex justify-between items-center mb-2">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-base text-white">${pair}</span>
+              <span class="text-xs font-extrabold ${dirColor}">${s.dir}</span>
+            </div>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded ${badgeClass}">${badgeText}</span>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 text-xs bg-slate-900/90 p-2 rounded border border-slate-800/80 mb-2">
+            <div>
+              <span class="text-[10px] text-slate-400 block">Entry (${s.entryTF.split(' ')[0]})</span>
+              <span class="font-mono font-bold text-white">${s.entry.toFixed(dec)}</span>
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-400 block">SL (+Buf)</span>
+              <span class="font-mono font-bold text-rose-400">${slBuffered.toFixed(dec)}</span>
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-400 block">Final RR</span>
+              <span class="font-mono font-bold text-emerald-400">1:${rr.toFixed(2)}</span>
+            </div>
+          </div>
+
+          <div class="flex justify-between items-center text-[11px] text-slate-400">
+            <span>🧱 <strong class="text-amber-300">${s.lbTF}</strong> (${s.lbTime.split('(')[0].trim()})</span>
+            <span class="font-mono text-sky-300">${distText}</span>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function renderDetails() {
+      const s = setups[selectedPair];
+      const { slBuffered, rr, dec, buf } = computeMetrics(selectedPair);
+
+      document.getElementById("detail-pair-title").textContent = `${selectedPair} — ${s.dir} (${s.entryTF})`;
+      document.getElementById("detail-live-price").textContent = s.livePrice.toFixed(dec);
+
+      const badge = document.getElementById("detail-status-badge");
+      const banner = document.getElementById("status-banner");
+      const dist = calcPipDistance(selectedPair, s.livePrice, s.entry);
+
+      if (s.status === "PENDING") {
+        badge.className = "text-[11px] font-bold uppercase px-2 py-0.5 rounded bg-amber-500/20 text-amber-300";
+        badge.textContent = "⏳ PENDING LIMIT — NOT TRIGGERED YET";
+        banner.className = "card p-4 border-l-4 border-amber-500";
+        document.getElementById("detail-distance").textContent = `⏳ Price is ${dist} away from ${s.entryTF} sweep line (${s.entry.toFixed(dec)}).`;
+      } else if (s.status === "TRIGGERED") {
+        badge.className = "text-[11px] font-bold uppercase px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300";
+        badge.textContent = "⚡ TRIGGERED — TRADE IN PLAY";
+        banner.className = "card p-4 border-l-4 border-emerald-500";
+        document.getElementById("detail-distance").textContent = `⚡ Entry triggered at ${s.entry.toFixed(dec)} (${dist} from current price). Hold for 1st Internal Pool (${s.tp1.toFixed(dec)}).`;
+      } else {
+        badge.className = "text-[11px] font-bold uppercase px-2 py-0.5 rounded bg-red-500/20 text-red-300";
+        badge.textContent = "🛑 STAY OUT — DO NOT EXECUTE";
+        banner.className = "card p-4 border-l-4 border-red-500";
+        document.getElementById("detail-distance").textContent = `🛑 Setup blocked by Marco Stay-Out Filter. See logic below.`;
+      }
+
+      // Timeframes & Timestamps
+      document.getElementById("tf-direction").textContent = s.htfBias;
+      document.getElementById("tf-lb").textContent = s.lbTF;
+      document.getElementById("time-lb-formed").textContent = s.lbTime;
+      document.getElementById("tf-entry").textContent = s.entryTF + " (No 1m)";
+      document.getElementById("time-entry-trigger").textContent = s.entryTime;
+
+      // Levels
+      document.getElementById("detail-rr-badge").textContent = `RR 1 : ${rr.toFixed(2)}`;
+      document.getElementById("lvl-entry").textContent = `${s.entry.toFixed(dec)} [${s.entryTF.split(' ')[0]}]`;
+      document.getElementById("lvl-lb").textContent = `${s.lbInner.toFixed(dec)} – ${s.lbExtreme.toFixed(dec)} [${s.lbTF.split(' ')[0]}]`;
+      document.getElementById("lvl-sl").textContent = `${slBuffered.toFixed(dec)}`;
+      document.getElementById("lvl-sl-note").textContent = `LB Extreme (${s.lbExtreme.toFixed(dec)}) + Mandatory Spread Buffer`;
+      document.getElementById("lvl-tp1").textContent = `${s.tp1.toFixed(dec)} [15m/1H Pool]`;
+      document.getElementById("lvl-tp2").textContent = `${s.tp2.toFixed(dec)} [4H/1D Pool]`;
+
+      document.getElementById("detail-story").textContent = s.story;
+
+      // Ticket
+      document.getElementById("mt5-ticket").textContent =
+`PAIR: ${selectedPair} | ACTION: ${s.dir} (${s.status})
+DIRECTION TF: ${s.htfBias}
+LIQUIDITY BLOCK: ${s.lbTF} | Formed: ${s.lbTime}
+EXECUTION TF: ${s.entryTF} (Strictly No 1m)
+TRIGGER STATUS: ${s.entryTime}
+------------------------------------------------
+ENTRY (Induced Sweep): ${s.entry.toFixed(dec)}
+LB ZONE (${s.lbTF.split(' ')[0]}):         ${s.lbInner.toFixed(dec)} - ${s.lbExtreme.toFixed(dec)}
+MT5 STOP LOSS (+Buf):  ${slBuffered.toFixed(dec)}
+1ST INTERNAL (BE/20%): ${s.tp1.toFixed(dec)}
+FINAL HTF TARGET:      ${s.tp2.toFixed(dec)}
+FINAL RISK:REWARD:     1 : ${rr.toFixed(2)}`;
+    }
+
+    function loadChart() {
+      const s = setups[selectedPair];
+      const tfMap = s.entryTF.includes("5m") ? "5" : "15";
+      document.getElementById("chart-tf-hint").textContent = `Execution View: ${tfMap}m (Strictly No 1m)`;
+      const container = document.getElementById("tv-chart-container");
+      container.innerHTML = `<iframe src="https://s.tradingview.com/widgetembed/?frameElementId=tv_chart&symbol=${encodeURIComponent(s.tvSymbol)}&interval=${tfMap}&hidesidetoolbar=0&symboledit=1&saveimage=1&toolbarbg=0f172a&studies=%5B%5D&theme=dark&style=1&timezone=Asia%2FDhaka" style="width:100%;height:100%;border:0;" allowfullscreen></iframe>`;
+    }
+
+    function setFilter(f) {
+      activeFilter = f;
+      ["ALL", "PENDING", "TRIGGERED", "STAYOUT"].forEach(k => {
+        const btn = document.getElementById("flt-" + k);
+        btn.className = k === f
+          ? "text-xs px-3 py-1.5 rounded-lg font-semibold bg-emerald-600 text-white"
+          : "text-xs px-3 py-1.5 rounded-lg font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700";
+      });
+      renderGrid();
+    }
+
+    function copyPlan() {
+      navigator.clipboard.writeText(document.getElementById("mt5-ticket").textContent);
+      const btn = document.getElementById("copy-btn");
+      btn.textContent = "Copied!";
+      setTimeout(() => btn.textContent = "Copy Ticket", 1500);
+    }
+
+    function toggleModal() {
+      const m = document.getElementById("setup-modal");
+      if (m.classList.contains("hidden")) {
+        m.classList.remove("hidden");
+        m.classList.add("flex");
+        document.getElementById("m-pair").value = selectedPair;
+        loadModalPair();
+      } else {
+        m.classList.add("hidden");
+        m.classList.remove("flex");
+      }
+    }
+
+    function loadModalPair() {
+      const p = document.getElementById("m-pair").value;
+      const s = setups[p];
+      document.getElementById("m-dir").value = s.dir;
+      document.getElementById("m-status").value = s.status;
+      document.getElementById("m-lbtf").value = s.lbTF;
+      document.getElementById("m-lbtime").value = s.lbTime;
+      document.getElementById("m-entf").value = s.entryTF;
+      document.getElementById("m-entime").value = s.entryTime;
+      document.getElementById("m-entry").value = s.entry;
+      document.getElementById("m-lbext").value = s.lbExtreme;
+      document.getElementById("m-tp1").value = s.tp1;
+      document.getElementById("m-tp2").value = s.tp2;
+    }
+
+    function saveModalSetup() {
+      const p = document.getElementById("m-pair").value;
+      const s = setups[p];
+      s.dir = document.getElementById("m-dir").value;
+      s.status = document.getElementById("m-status").value;
+      s.lbTF = document.getElementById("m-lbtf").value;
+      s.lbTime = document.getElementById("m-lbtime").value;
+      s.entryTF = document.getElementById("m-entf").value;
+      s.entryTime = document.getElementById("m-entime").value;
+      s.entry = parseFloat(document.getElementById("m-entry").value) || s.entry;
+      s.lbExtreme = parseFloat(document.getElementById("m-lbext").value) || s.lbExtreme;
+      s.tp1 = parseFloat(document.getElementById("m-tp1").value) || s.tp1;
+      s.tp2 = parseFloat(document.getElementById("m-tp2").value) || s.tp2;
+      selectedPair = p;
+      toggleModal();
+      renderGrid();
+      renderDetails();
+      loadChart();
+    }
+
+    function updateDhakaClock() {
       const now = new Date();
       const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
       const dhaka = new Date(utc + (3600000 * 6));
       const h = dhaka.getHours();
-      const m = String(dhaka.getMinutes()).padStart(2, '0');
-      const s = String(dhaka.getSeconds()).padStart(2, '0');
-      document.getElementById('dhaka-time').textContent = `Dhaka Time: ${String(h).padStart(2,'0')}:${m}:${s} (GMT+6)`;
+      const m = String(dhaka.getMinutes()).padStart(2, "0");
+      const s = String(dhaka.getSeconds()).padStart(2, "0");
+      document.getElementById("dhaka-clock").textContent = `Dhaka: ${String(h).padStart(2, "0")}:${m}:${s} (GMT+6)`;
 
-      let session = "Asia / Off-Peak (Check Limit Setups)";
-      if (h >= 8 && h < 10) session = "🟢 Marco Pre-Bedtime Limit Window (8:00-10:00 AM)";
-      else if (h >= 13 && h < 18) session = "🟡 London Buildup / Trap Context (1:00-6:00 PM)";
-      else if (h >= 18 && h <= 22) session = "🔥 NY Execution Window (6:00-10:30 PM)";
-      document.getElementById('session-badge').textContent = session;
-    }
-    setInterval(updateClock, 1000);
-    updateClock();
-
-    function getBuffer(pair) {
-      if (pair === 'XAUUSD') return 5.00; // 50 pips ($5.00) on Gold per Video 11
-      if (pair.includes('JPY')) return 0.04; // 4 pips on JPY pairs
-      return 0.0003; // 3 pips on standard Forex majors
+      let sess = "Asia / Pre-London Scan";
+      if (h >= 8 && h < 10) sess = "🟢 Marco Limit Setup Window (8:00–10:00 AM)";
+      else if (h >= 13 && h < 18) sess = "🟡 London Buildup / Trap Context (1:00–6:00 PM)";
+      else if (h >= 18 && h <= 23) sess = "🔥 NY Execution Window (6:00–11:00 PM)";
+      document.getElementById("session-status").textContent = sess;
     }
 
-    function calculateTrade() {
-      const pair = document.getElementById('pair').value;
-      const dir = document.getElementById('direction').value;
-      const model = document.getElementById('model').value;
-      const entry = parseFloat(document.getElementById('entry').value);
-      const lb = parseFloat(document.getElementById('lb_extreme').value);
-      const tp1 = parseFloat(document.getElementById('tp1').value);
-      const tpFinal = parseFloat(document.getElementById('tp_final').value);
-
-      const checks = document.querySelectorAll('.check-item');
-      let checkedCount = 0;
-      checks.forEach(c => { if (c.checked) checkedCount++; });
-
-      const buffer = getBuffer(pair);
-      const decimals = pair === 'XAUUSD' ? 2 : (pair.includes('JPY') ? 3 : 5);
-
-      let slBuffered = NaN;
-      let rr = NaN;
-
-      if (!isNaN(entry) && !isNaN(lb)) {
-        slBuffered = dir === 'SELL' ? (lb + buffer) : (lb - buffer);
-        document.getElementById('sl-buffered').textContent = slBuffered.toFixed(decimals);
-
-        if (!isNaN(tpFinal)) {
-          const risk = dir === 'SELL' ? (slBuffered - entry) : (entry - slBuffered);
-          const reward = dir === 'SELL' ? (entry - tpFinal) : (tpFinal - entry);
-          if (risk > 0 && reward > 0) {
-            rr = reward / risk;
-            document.getElementById('rr-output').textContent = `1 : ${rr.toFixed(2)}`;
-          } else {
-            document.getElementById('rr-output').textContent = "Invalid Dir";
-          }
-        }
-      } else {
-        document.getElementById('sl-buffered').textContent = "--";
-        document.getElementById('rr-output').textContent = "--";
-      }
-
-      const vBox = document.getElementById('verdict-box');
-      const vTitle = document.getElementById('verdict-title');
-      const vDesc = document.getElementById('verdict-desc');
-
-      if (checkedCount < 8) {
-        vBox.className = "card p-4 border-2 border-amber-500/60 bg-amber-950/20";
-        vTitle.className = "text-lg font-bold text-amber-400 mt-1";
-        vTitle.textContent = `⚠️ STAY OUT — Checklist Incomplete (${checkedCount}/8)`;
-        vDesc.textContent = "Marco Rule: Sob 8-ti condition 'YES' na hole trade neoa jabe na.";
-      } else if (isNaN(rr) || rr <= 0) {
-        vBox.className = "card p-4 border-2 border-sky-500/60 bg-sky-950/20";
-        vTitle.className = "text-lg font-bold text-sky-400 mt-1";
-        vTitle.textContent = "Checklist Ready (8/8) — Enter Price Levels";
-        vDesc.textContent = "Enter Entry, LB Extreme, and Final TP to check the 1:3 RR filter.";
-      } else if (rr < 3.0) {
-        vBox.className = "card p-4 border-2 border-red-500 bg-red-950/30";
-        vTitle.className = "text-lg font-bold text-red-400 mt-1";
-        vTitle.textContent = `🛑 NO DIRECT TRADE (RR is 1:${rr.toFixed(2)} < 1:3.0)`;
-        vDesc.textContent = "Marco Rule (Vol 3 & Da Vinci): Stop Loss boro howay RR 1:3-er niche. Direct entry nio na! 5m/1m-e giye Model 2 (LTF Confirmation Block) khujo.";
-      } else {
-        vBox.className = "card p-4 border-2 border-emerald-500 bg-emerald-950/30";
-        vTitle.className = "text-lg font-bold text-emerald-400 mt-1";
-        vTitle.textContent = `✅ VALID MARCO SETUP — GO (1:${rr.toFixed(2)} RR)`;
-        vDesc.textContent = "All 8 Da Vinci & LB criteria met. Set predetermined SL & TP on MT5 and let it play out!";
-      }
-
-      const tp1Text = !isNaN(tp1) ? `${tp1.toFixed(decimals)} (Move SL to BE / Max 20-25% Partial)` : "1st Internal Structure Break -> Move SL to BE";
-      document.getElementById('ticket-text').textContent =
-`PAIR: ${pair} | DIRECTION: ${dir}
-MODEL: ${model}
-CHECKLIST: ${checkedCount}/8 Passed
-----------------------------------------
-ENTRY (Induced Sweep): ${!isNaN(entry) ? entry.toFixed(decimals) : '--'}
-LB EXTREME:            ${!isNaN(lb) ? lb.toFixed(decimals) : '--'}
-MT5 STOP LOSS (+Buf):  ${!isNaN(slBuffered) ? slBuffered.toFixed(decimals) : '--'}
-BE / 1ST INTERNAL:     ${tp1Text}
-FINAL HTF TARGET:      ${!isNaN(tpFinal) ? tpFinal.toFixed(decimals) : '--'}
-RISK : REWARD:         ${!isNaN(rr) && rr > 0 ? '1 : ' + rr.toFixed(2) : '--'}
-----------------------------------------
-RULE REMINDER: Do NOT roll SL early on minor squeeze!`;
-    }
-
-    function copyTicket() {
-      const text = document.getElementById('ticket-text').textContent;
-      navigator.clipboard.writeText(text);
-      const btn = document.getElementById('copy-btn');
-      btn.textContent = "Copied!";
-      setTimeout(() => btn.textContent = "Copy Plan", 1500);
-    }
-
-    calculateTrade();
+    setInterval(updateDhakaClock, 1000);
+    updateDhakaClock();
+    renderGrid();
+    renderDetails();
+    loadChart();
   </script>
 </body>
 </html>
